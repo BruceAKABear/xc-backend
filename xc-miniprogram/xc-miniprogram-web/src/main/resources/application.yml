@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: xc-mini-web
+  http:
+    encoding:
+      force: true
+    multipart:
+      max-file-size: 512MB
+      max-request-size: 512MB
+      location: /home/webapps/dp-dis-interaction/temp_files
+  mvc:
+    throw-exception-if-no-handler-found: true
+  profiles:
+    active: dev
+  thymeleaf:
+    cache: false
+
+  data:
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database: wx-mini
+      field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
+
+server:
+  tomcat:
+    max-threads: 600
+    uri-encoding: utf-8
+    accesslog:
+      enabled: true
+      directory: logs
+  port: 8080
+  context-path: /xc/mini
