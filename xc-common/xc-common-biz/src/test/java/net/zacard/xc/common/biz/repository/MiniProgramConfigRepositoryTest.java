@@ -49,7 +49,6 @@ public class MiniProgramConfigRepositoryTest {
         MiniProgramConfig miniProgramConfig = miniProgramConfigRepository.findOne(id);
         List<String> channels = new ArrayList<>();
         channels.add("5edb29cfb35908d4f812df9d");
-        miniProgramConfig.setChannelIds(channels);
         miniProgramConfigRepository.save(miniProgramConfig);
     }
 }

@@ -3,14 +3,17 @@ package net.zacard.xc.common.biz.infra.exception;
 import net.zacard.xc.common.api.entity.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
+import java.io.IOException;
 import java.util.stream.Collectors;
 
 /**
@@ -86,8 +89,11 @@ public class ExceptionTranslator {
      */
     @ExceptionHandler
     @ResponseBody
-    public Response processException(Exception e) {
+    public void processException(HttpServletResponse response, Exception e) {
         logger.error("catch exception:" + e.getMessage(), e);
-        return Response.fail();
+        try {
+            response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "服务器内部错误");
+        } catch (IOException ignore) {
+        }
     }
 }

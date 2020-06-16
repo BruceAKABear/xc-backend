@@ -10,7 +10,7 @@ public class BusinessException extends RuntimeException {
 
     private static final long serialVersionUID = 6917623608519749603L;
 
-    public static final String DEFAULT_CODE = "YX-ERROR-0001";
+    public static final String DEFAULT_CODE = "XC-ERROR-0001";
 
     private String code;
 

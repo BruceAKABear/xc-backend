@@ -1,0 +1,130 @@
+package net.zacard.xc.miniprogram.web.controller.api;
+
+import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import net.zacard.xc.common.biz.entity.MiniProgramConfig;
+import net.zacard.xc.common.biz.entity.PayCallbackReq;
+import net.zacard.xc.common.biz.entity.PayCallbackRes;
+import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
+import net.zacard.xc.common.biz.util.EncryptUtil;
+import net.zacard.xc.common.biz.util.ObjectUtil;
+import net.zacard.xc.common.biz.util.RandomStringUtil;
+import net.zacard.xc.miniprogram.web.Application;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * @author guoqw
+ * @since 2020-06-11 11:28
+ */
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class)
+public class ApiControllerTest {
+
+    private MockMvc restMockMvc;
+
+    @Autowired
+    private WebApplicationContext wac;
+
+    private XmlMapper xmlMapper;
+
+    @Autowired
+    private MiniProgramConfigRepository miniProgramConfigRepository;
+
+    @Before
+    public void setUp() throws Exception {
+        this.restMockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
+                .alwaysDo(print())
+                .build();
+
+        xmlMapper = new XmlMapper();
+        xmlMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+    }
+
+    @Test
+    public void payCallback() throws Exception {
+        PayCallbackReq req = new PayCallbackReq();
+        req.setReturnCode("SUCCESS");
+        req.setResultCode("SUCCESS");
+        req.setAppId("wx0e63bb140eabbcab");
+        req.setMchId("1597282921");
+        req.setNonceStr(RandomStringUtil.getRandomUpperString());
+        req.setResultCode("SUCCESS");
+        req.setOpenid("oFtQw5YlC2hYGE2W_DrtridM9jZk");
+        req.setSubscribe("Y");
+        req.setTradeType("JSAPI");
+        req.setBankType("CMC");
+        req.setTotalFee(100);
+        req.setCashFee(0);
+        req.setTransactionId("abc");
+        req.setOutTradeNo("202006121346458161902010011");
+        req.setTimeEnd("20200611131756");
+
+        // 生成签名
+        Map<String, String> signMap = ObjectUtil.objectToMapNonNull(req);
+        MiniProgramConfig config = miniProgramConfigRepository.findByAppId(req.getAppId());
+        req.setSign(EncryptUtil.wxPaySign(signMap, config.getKey()));
+        System.out.println("sign:" + req.getSign());
+
+        // req转成xml
+        String xmlStr = xmlMapper.writeValueAsString(req);
+
+        MvcResult result = restMockMvc.perform(post("/api/pay/wx/callback")
+                .content(xmlStr)
+                .contentType(MediaType.APPLICATION_XML))
+                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.code").value("1"))
+                .andReturn();
+        String bodyStr = result.getResponse().getContentAsString();
+
+        PayCallbackRes res = xmlMapper.readValue(bodyStr, PayCallbackRes.class);
+        System.out.println("response:" + JSON.toJSONString(res, true));
+
+        // 这里测试是否有收到4次回调
+        TimeUnit.SECONDS.sleep(80);
+    }
+
+    @Test
+    public void payQuery() {
+    }
+
+    @Test
+    public void roleInfo() {
+    }
+
+    @Test
+    public void userInfo() throws Exception {
+        String userToken = "067bef6d80f54166befe3081b4519c68";
+        MvcResult result = restMockMvc.perform(get("/api/user/info?userToken=" + userToken)
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andReturn();
+        String bodyStr = result.getResponse().getContentAsString();
+        System.out.println("result:" + JSON.toJSONString(JSON.parseObject(bodyStr), true));
+    }
+}

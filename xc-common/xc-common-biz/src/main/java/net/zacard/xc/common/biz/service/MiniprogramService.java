@@ -7,7 +7,6 @@ import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -25,10 +24,6 @@ public class MiniprogramService {
 
     public List<Channel> channels(String appId) {
         MiniProgramConfig config = miniProgramConfigRepository.findByAppId(appId);
-        List<String> channelIds = config.getChannelIds();
-        if (channelIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return channelRepository.findByIdIn(channelIds);
+        return channelRepository.findByMiniProgramConfigId(config.getId());
     }
 }

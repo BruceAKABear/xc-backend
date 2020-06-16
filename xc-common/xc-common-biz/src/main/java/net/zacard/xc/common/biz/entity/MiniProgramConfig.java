@@ -2,10 +2,9 @@ package net.zacard.xc.common.biz.entity;
 
 import lombok.Data;
 import net.zacard.xc.common.biz.infra.mongo.AuditDocument;
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.List;
 
 /**
  * 小程序配置
@@ -22,26 +21,30 @@ public class MiniProgramConfig extends AuditDocument {
     /**
      * 小程序名称
      */
+    @NotBlank(message = "name不能为空")
     private String name;
 
     /**
      * 小程序id
      */
+    @NotBlank(message = "appid不能为空")
     @Indexed(unique = true)
     private String appId;
 
     /**
      * 商户id
      */
+    @NotBlank(message = "mch_id不能为")
     private String mchId;
 
     /**
      * 商户平台设置的密钥key
      */
+    @NotBlank(message = "key不能为空")
     private String key;
 
-    /**
-     * 小程序承接的渠道商列表
-     */
-    private List<String> channelIds;
+//    /**
+//     * 小程序承接的渠道商列表
+//     */
+//    private List<String> channelIds;
 }

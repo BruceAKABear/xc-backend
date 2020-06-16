@@ -25,6 +25,8 @@ public class PrepareOrderRes implements Serializable {
     private String timeStamp;
 
     private String paySign;
+
+    private String signType;
 }
 
 

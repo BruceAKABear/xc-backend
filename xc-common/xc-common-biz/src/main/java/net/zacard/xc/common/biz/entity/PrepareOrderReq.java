@@ -19,6 +19,9 @@ public class PrepareOrderReq implements Serializable {
     @NotBlank(message = "userToken不能为空")
     private String userToken;
 
+    @NotBlank(message = "channelOrderId不能为空")
+    private String channelOrderId;
+
     @Min(0)
     @NotNull
     private Integer price;

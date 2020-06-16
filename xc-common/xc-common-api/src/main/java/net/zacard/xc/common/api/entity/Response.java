@@ -92,7 +92,4 @@ public class Response<T> implements Serializable {
         this.data = data;
     }
 
-    public T getResult() {
-        return data;
-    }
 }

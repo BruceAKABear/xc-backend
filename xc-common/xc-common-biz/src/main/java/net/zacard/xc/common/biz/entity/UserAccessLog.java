@@ -10,6 +10,8 @@ import java.util.Date;
 
 /**
  * 用户访问日志
+ * <p>
+ * TODO 增加清理机制
  *
  * @author guoqw
  * @since 2020-06-04 07:50
@@ -29,6 +31,8 @@ public class UserAccessLog extends AuditDocument {
     private String appId;
 
     private String openid;
+
+    private String roleInfoId;
 
     /**
      * 登陆时间

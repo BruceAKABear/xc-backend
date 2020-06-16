@@ -8,6 +8,7 @@ import net.zacard.xc.common.biz.entity.UserAccessLog;
 import net.zacard.xc.common.biz.infra.web.Session;
 import net.zacard.xc.common.biz.repository.UserAccessLogRepository;
 import net.zacard.xc.common.biz.repository.UserRepository;
+import net.zacard.xc.common.biz.util.BeanMapper;
 import net.zacard.xc.common.biz.util.Constant;
 import net.zacard.xc.common.biz.util.HttpUtil;
 import org.springframework.beans.BeanUtils;
@@ -87,5 +88,17 @@ public class UserService {
             userAccessLogRepository.save(userAccessLog);
         }
         Session.clean(userToken);
+    }
+
+    /**
+     * 获取用户信息
+     *
+     * @param userToken
+     * @return
+     */
+    public UserDto info(String userToken) {
+        UserAccessLog userAccessLog = Session.checkedUser(userToken);
+        User user = userRepository.findByOpenid(userAccessLog.getOpenid());
+        return BeanMapper.map(user, UserDto.class);
     }
 }

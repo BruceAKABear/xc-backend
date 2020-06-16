@@ -2,6 +2,8 @@ package net.zacard.xc.common.biz.entity;
 
 import lombok.Data;
 import net.zacard.xc.common.biz.infra.mongo.AuditDocument;
+import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
@@ -19,23 +21,48 @@ public class Channel extends AuditDocument {
     /**
      * 渠道名称
      */
-    public String name;
+    @NotBlank
+    private String name;
 
-    public String miniProgramConfigId;
+    @NotBlank
+    private String miniProgramConfigId;
 
     /**
      * 渠道对接的小程序appid
      */
-    public String appId;
+    @NotBlank
+    private String appId;
+
+    /**
+     * 给渠道分配的appSecret,用来做签名校验
+     */
+    @Indexed(unique = true)
+    private String appSecret;
+
+    /**
+     * 图片url
+     */
+    private String picUrl;
+
+    /**
+     * 游戏的h5资源url接口
+     */
+    private String gameH5Url;
 
     /**
      * 支付回调url
      */
-    public String payCallbackUrl;
+    @NotBlank
+    private String payCallbackUrl;
 
     /**
      * 支付回调方法：POST|GET
      */
-    public String payCallbackMethod;
+    private String payCallbackMethod;
+
+    /**
+     * 是否上线
+     */
+    private Boolean online;
 
 }

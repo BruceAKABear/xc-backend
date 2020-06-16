@@ -219,6 +219,7 @@ public class UnifiedOrderReq implements Serializable {
         req.setTotalFee(totalFee);
         signMap.put("total_fee", req.getTotalFee().toString());
 
+        // TODO 注意这里可能获取到的本地ip为null，需要配置服务器
         req.setSpbillCreateIp(NetUtils.getLocalHost());
         signMap.put("spbill_create_ip", req.getSpbillCreateIp());
 
@@ -249,9 +250,9 @@ public class UnifiedOrderReq implements Serializable {
         try {
             xml = xmlMapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("统一下单req转为xml报错", e);
         }
-        log.info("xml:" + xml);
+//        log.info("xml:" + xml);
         return xml;
     }
 

@@ -1,5 +1,7 @@
 package net.zacard.xc.common.biz.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -14,7 +16,21 @@ import java.util.Map;
  * @author guoqw
  * @since 2020-06-05 12:54
  */
+@Slf4j
 public class EncryptUtil {
+
+    /**
+     * 微信支付，对于给定字段签名
+     *
+     * @param target    对象必须都是基本类型、基本类型包装类、String
+     * @param secretKey 私钥
+     */
+    public static String wxPaySign(Object target, String secretKey) {
+        Map<String, String> signMap = ObjectUtil.objectToMapNonNull(target);
+        // 去除sign字段(sign本身不参与签名)
+        signMap.remove("sign");
+        return wxPaySign(signMap, secretKey);
+    }
 
     /**
      * 微信支付，对于给定字段签名
@@ -33,7 +49,7 @@ public class EncryptUtil {
         }
         // 拼接key
         sign.append("key=").append(secretKey);
-        System.out.println("sign1:"+sign.toString());
+        log.debug("拼接的签名字符串：" + sign.toString());
         // md5 & upper
         return md5(sign.toString()).toUpperCase();
     }

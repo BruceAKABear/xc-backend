@@ -2,6 +2,7 @@ package net.zacard.xc.common.biz.entity;
 
 import lombok.Data;
 import net.zacard.xc.common.biz.infra.mongo.AuditDocument;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
@@ -26,4 +27,10 @@ public class UnifiedOrder extends AuditDocument {
      * 渠道商获取下单参数时附带的other参数，将在支付成功回调给渠道商的时候带回
      */
     private String channelOther;
+
+    /**
+     * 系统内部生成的订单号
+     */
+    @Indexed(unique = true)
+    private String orderId;
 }
