@@ -17,7 +17,7 @@ public class RoleOptLog extends AuditDocument {
     private static final long serialVersionUID = -4813025705502404685L;
 
     /**
-     * 操作类型：CREATE-创建角色|UPDATE-角色升级
+     * 操作类型：CREATE:创建角色|UPDATE-LEVEL:角色升级|UPDATE-MONEY:虚拟货币变动
      */
     private String type;
 
@@ -26,5 +26,7 @@ public class RoleOptLog extends AuditDocument {
     private String openid;
 
     private String channelId;
+
+    private String roleInfoId;
 
 }

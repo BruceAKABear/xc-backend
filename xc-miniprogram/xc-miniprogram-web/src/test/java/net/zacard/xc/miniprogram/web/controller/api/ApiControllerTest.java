@@ -3,6 +3,7 @@ package net.zacard.xc.miniprogram.web.controller.api;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import net.zacard.xc.common.api.entity.RoleInfoDto;
 import net.zacard.xc.common.biz.entity.MiniProgramConfig;
 import net.zacard.xc.common.biz.entity.PayCallbackReq;
 import net.zacard.xc.common.biz.entity.PayCallbackRes;
@@ -113,7 +114,20 @@ public class ApiControllerTest {
     }
 
     @Test
-    public void roleInfo() {
+    public void roleInfoAdd() {
+        RoleInfoDto roleInfoDto = new RoleInfoDto();
+        roleInfoDto.setType("CREATE");
+        roleInfoDto.setName("张三");
+        roleInfoDto.setArea("一区");
+        roleInfoDto.setLevel("1");
+        roleInfoDto.setMoney(0);
+        roleInfoDto.setUserToken("");
+
+    }
+    @Test
+    public void roleInfoUpdate() {
+        RoleInfoDto roleInfoDto = new RoleInfoDto();
+
     }
 
     @Test

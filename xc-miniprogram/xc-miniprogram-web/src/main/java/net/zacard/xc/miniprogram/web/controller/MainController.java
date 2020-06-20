@@ -24,4 +24,8 @@ public class MainController {
         return Response.success(miniprogramService.channels(appId));
     }
 
+    @RequestMapping(path = "/health")
+    public String health() {
+        return "ok"; }
+
 }

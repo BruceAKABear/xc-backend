@@ -9,4 +9,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
  */
 public interface RoleInfoRepository extends MongoRepository<RoleInfo, String> {
 
+    RoleInfo findByToken(String token);
+
 }

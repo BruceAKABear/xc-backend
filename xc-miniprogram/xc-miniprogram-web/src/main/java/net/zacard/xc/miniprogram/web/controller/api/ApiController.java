@@ -7,6 +7,7 @@ import net.zacard.xc.common.api.entity.UserDto;
 import net.zacard.xc.common.biz.entity.PayCallbackReq;
 import net.zacard.xc.common.biz.entity.PayCallbackRes;
 import net.zacard.xc.common.biz.entity.PayQueryRes;
+import net.zacard.xc.common.biz.service.RoleInfoService;
 import net.zacard.xc.common.biz.util.ValidateUtils;
 import net.zacard.xc.miniprogram.biz.service.pay.PayService;
 import net.zacard.xc.miniprogram.biz.service.user.UserService;
@@ -31,6 +32,9 @@ public class ApiController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RoleInfoService roleInfoService;
 
     @RequestMapping(path = "/pay/wx/callback",
             consumes = MediaType.APPLICATION_XML_VALUE,
@@ -70,6 +74,12 @@ public class ApiController {
 
     @RequestMapping(path = "/game/role/info")
     public Response roleInfo(@RequestBody @Validated RoleInfoDto roleInfoDto) {
+        String type = roleInfoDto.getType();
+        if ("CREATE".equals(type)) {
+            roleInfoService.add(roleInfoDto);
+        } else {
+            roleInfoService.update(roleInfoDto);
+        }
         return Response.success();
     }
 
