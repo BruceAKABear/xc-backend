@@ -1,6 +1,6 @@
 #!/bin/sh
 
-MAIN_JAR="xc-mini.jar"
+MAIN_JAR="xc-mini-exec.jar"
 
 SCRIPTS_DIR=`dirname "$0"`
 PROJECT_DIR=`cd $SCRIPTS_DIR && pwd`
