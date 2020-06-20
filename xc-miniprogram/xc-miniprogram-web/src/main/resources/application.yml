@@ -51,6 +51,12 @@ spring:
       port: 27017
       database: wx-mini-test
       field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
+
+server:
+  tomcat:
+    accesslog:
+      enabled: true
+      directory: /home/logs/xc-mini
 ---
 spring:
   profiles: prod
@@ -60,3 +66,9 @@ spring:
       port: 27017
       database: wx-mini
       field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
+
+server:
+  tomcat:
+    accesslog:
+      enabled: true
+      directory: /home/logs/xc-mini

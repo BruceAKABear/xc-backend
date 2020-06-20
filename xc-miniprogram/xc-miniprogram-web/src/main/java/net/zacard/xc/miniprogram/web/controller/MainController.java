@@ -26,6 +26,7 @@ public class MainController {
 
     @RequestMapping(path = "/health")
     public String health() {
-        return "ok"; }
+        return "ok";
+    }
 
 }

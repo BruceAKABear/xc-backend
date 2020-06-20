@@ -6,7 +6,7 @@ SCRIPTS_DIR=`dirname "$0"`
 PROJECT_DIR=`cd $SCRIPTS_DIR && pwd`
 DT=`date +"%Y%m%d_%H%M%S"`
 STAT_DATE=`date +"%Y%m%d"`
-LOG_DIR= "/home/logs/xc-mini"
+LOG_DIR="/home/logs/xc-mini"
 
 MEM_OPTS="-Xms200m -Xmx500m"
 GC_OPTS="$GC_OPTS -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:CMSInitiatingOccupancyFraction=70"
