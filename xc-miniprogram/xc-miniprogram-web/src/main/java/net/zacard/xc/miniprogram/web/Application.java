@@ -27,7 +27,7 @@ public class Application {
                 .run(Application.class, args)
                 .getEnvironment();
         log.info(
-                "wx-mp:Access URLs:\n----------------------------------------------------------\n\t" +
+                "xc-mini:Access URLs:\n----------------------------------------------------------\n\t" +
                         "Local: \t\thttp://127.0.0.1:{}\n\t" +
                         "External: \thttp://{}:{}\n----------------------------------------------------------",
                 env.getProperty("server.port"),

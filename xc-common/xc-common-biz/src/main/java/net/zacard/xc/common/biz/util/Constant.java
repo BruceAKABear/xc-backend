@@ -43,4 +43,13 @@ public class Constant {
      */
     public static final AtomicInteger INDEX = new AtomicInteger(0);
 
+    /**
+     * 获取小程序access_token的url format
+     */
+    public static final String MINI_PROGRAM_GET_ACCESS_TOKEN_URL_FORMAT = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s";
+
+    /**
+     * 小程序发送消息的url format
+     */
+    public static final String MINI_PROGRAM_SEND_MESSAGE_URL_FORMAT = "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=%s";
 }

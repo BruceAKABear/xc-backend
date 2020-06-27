@@ -9,6 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author guoqw
  * @since 2020-06-09 13:46
@@ -19,6 +21,10 @@ public class ChannelService {
 
     @Autowired
     private ChannelRepository channelRepository;
+
+    public List<Channel> list() {
+        return channelRepository.findByDeletedIsFalse();
+    }
 
     public void add(Channel channel) {
         // 生成appSecret

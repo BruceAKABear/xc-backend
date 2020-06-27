@@ -1,5 +1,6 @@
 package net.zacard.xc.common.biz.util;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
@@ -65,6 +66,37 @@ public class EncryptUtil {
         byte[] byteArray = messageDigest.digest();
 
         return bufferToHex(byteArray);
+    }
+
+    public static String wxMessageCheckSign(String token, String timestamp, String nonce) {
+        List<String> keys = Lists.newArrayList(token, timestamp, nonce);
+        // key排序
+        Collections.sort(keys);
+        // 拼接
+        String sign = String.join("", keys);
+        return sha1(sign);
+    }
+
+    public static String sha1(String str) {
+        // SHA1签名生成
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            throw ExceptionUtil.unchecked(e);
+        }
+        md.update(str.getBytes());
+        byte[] digest = md.digest();
+        StringBuilder hexstr = new StringBuilder();
+        String shaHex;
+        for (int i = 0; i < digest.length; i++) {
+            shaHex = Integer.toHexString(digest[i] & 0xFF);
+            if (shaHex.length() < 2) {
+                hexstr.append(0);
+            }
+            hexstr.append(shaHex);
+        }
+        return hexstr.toString();
     }
 
     private static String bufferToHex(byte[] byteArray) {

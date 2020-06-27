@@ -59,10 +59,12 @@ public class UserService {
         User user = new User();
         BeanUtils.copyProperties(userDto, user);
         User tmp = userRepository.findByOpenid(userDto.getOpenid());
+        Boolean isNewUser = Boolean.FALSE;
         if (tmp == null) {
             // 用户不存在，先主动注册
             try {
                 userRepository.insert(user);
+                isNewUser = Boolean.TRUE;
             } catch (Exception e) {
                 // 这里应该是重复注册，只记录日志
                 log.error("注册用户(" + userDto.getOpenid() + ")出错", e);
@@ -73,6 +75,7 @@ public class UserService {
         user = tmp;
         // 登录日志
         UserAccessLog userAccessLog = UserAccessLog.signIn(user, userDto.getChannelId(), userDto.getAppId());
+        userAccessLog.setNewUser(isNewUser);
         // 保存登录日志
         userAccessLogRepository.save(userAccessLog);
         return userAccessLog.getUserToken();
@@ -100,5 +103,10 @@ public class UserService {
         UserAccessLog userAccessLog = Session.checkedUser(userToken);
         User user = userRepository.findByOpenid(userAccessLog.getOpenid());
         return BeanMapper.map(user, UserDto.class);
+    }
+
+    public void data() {
+        // 查询新增用户数
+
     }
 }

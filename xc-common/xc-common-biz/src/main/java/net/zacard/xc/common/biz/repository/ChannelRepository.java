@@ -14,4 +14,6 @@ public interface ChannelRepository extends MongoRepository<Channel, String> {
     List<Channel> findByIdIn(List<String> ids);
 
     List<Channel> findByMiniProgramConfigId(String miniProgramConfigId);
+
+    List<Channel> findByDeletedIsFalse();
 }

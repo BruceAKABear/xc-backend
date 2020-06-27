@@ -7,12 +7,15 @@ import net.zacard.xc.common.api.entity.RoleInfoDto;
 import net.zacard.xc.common.biz.entity.MiniProgramConfig;
 import net.zacard.xc.common.biz.entity.PayCallbackReq;
 import net.zacard.xc.common.biz.entity.PayCallbackRes;
+import net.zacard.xc.common.biz.entity.WxMessageReq;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
 import net.zacard.xc.common.biz.util.EncryptUtil;
 import net.zacard.xc.common.biz.util.ObjectUtil;
 import net.zacard.xc.common.biz.util.RandomStringUtil;
+import net.zacard.xc.common.biz.util.XmlUtil;
 import net.zacard.xc.miniprogram.web.Application;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -124,6 +127,7 @@ public class ApiControllerTest {
         roleInfoDto.setUserToken("");
 
     }
+
     @Test
     public void roleInfoUpdate() {
         RoleInfoDto roleInfoDto = new RoleInfoDto();
@@ -141,4 +145,28 @@ public class ApiControllerTest {
         String bodyStr = result.getResponse().getContentAsString();
         System.out.println("result:" + JSON.toJSONString(JSON.parseObject(bodyStr), true));
     }
+
+    @Test
+    public void wxMessage() throws Exception {
+        WxMessageReq req = new WxMessageReq();
+        req.setFromUserName("oFtQw5YlC2hYGE2W_DrtridM9jZk");
+        req.setToUserName("wx0e63bb140eabbcab");
+        req.setCreateTime(System.currentTimeMillis() / 1000);
+        req.setMsgType("text");
+        req.setContent("测试消息");
+        String xmlStr = XmlUtil.toXml(req);
+
+        MvcResult result = restMockMvc.perform(post("/api/wx/message/wx0e63bb140eabbcab")
+                .content(xmlStr)
+                .contentType(MediaType.APPLICATION_XML))
+                .andExpect(status().isOk())
+                .andReturn();
+        String bodyStr = result.getResponse().getContentAsString();
+        Assert.assertEquals("success", bodyStr);
+    }
+
+    @Test
+    public void roleInfo() {
+    }
+
 }

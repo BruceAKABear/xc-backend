@@ -11,3 +11,4 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     User findByOpenid(String openid);
 }
+

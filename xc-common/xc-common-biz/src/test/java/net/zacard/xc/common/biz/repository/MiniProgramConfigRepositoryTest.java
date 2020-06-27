@@ -1,6 +1,7 @@
 package net.zacard.xc.common.biz.repository;
 
 import net.zacard.xc.common.biz.entity.MiniProgramConfig;
+import net.zacard.xc.common.biz.util.RandomStringUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -9,9 +10,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author guoqw
@@ -47,8 +45,9 @@ public class MiniProgramConfigRepositoryTest {
     public void update() throws Exception {
         String id = "5edb298eb35908d4df9e111f";
         MiniProgramConfig miniProgramConfig = miniProgramConfigRepository.findOne(id);
-        List<String> channels = new ArrayList<>();
-        channels.add("5edb29cfb35908d4f812df9d");
+        miniProgramConfig.setAppSecret("8d205d7245a469305865127cfb92d936");
+        miniProgramConfig.setMessageToken(RandomStringUtil.getRandomUpperString());
+        miniProgramConfig.setMessageEncodingAESKey("dLCQpFRsGmHePXd1B6tz4m93R7hF4wj8nH7xS5uKRv9");
         miniProgramConfigRepository.save(miniProgramConfig);
     }
 }

@@ -7,15 +7,21 @@ import net.zacard.xc.common.api.entity.UserDto;
 import net.zacard.xc.common.biz.entity.PayCallbackReq;
 import net.zacard.xc.common.biz.entity.PayCallbackRes;
 import net.zacard.xc.common.biz.entity.PayQueryRes;
+import net.zacard.xc.common.biz.entity.WxMessageReq;
 import net.zacard.xc.common.biz.service.RoleInfoService;
 import net.zacard.xc.common.biz.util.ValidateUtils;
+import net.zacard.xc.miniprogram.biz.service.message.MessageService;
 import net.zacard.xc.miniprogram.biz.service.pay.PayService;
 import net.zacard.xc.miniprogram.biz.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -35,6 +41,9 @@ public class ApiController {
 
     @Autowired
     private RoleInfoService roleInfoService;
+
+    @Autowired
+    private MessageService messageService;
 
     @RequestMapping(path = "/pay/wx/callback",
             consumes = MediaType.APPLICATION_XML_VALUE,
@@ -60,6 +69,28 @@ public class ApiController {
             return PayCallbackRes.fail(e.getMessage());
         }
         return PayCallbackRes.success();
+    }
+
+    /**
+     * 微信消息接入校验
+     */
+    @GetMapping(path = "/wx/message/{appId}")
+    public String wxMessageCheck(@PathVariable String appId,
+                                 @RequestParam String signature,
+                                 @RequestParam String timestamp,
+                                 @RequestParam String nonce,
+                                 @RequestParam String echostr) {
+        if (messageService.messageCheck(appId, timestamp, nonce, signature)) {
+            return echostr;
+        }
+        return "";
+    }
+
+    @PostMapping(path = "/wx/message/{appId}",
+            consumes = MediaType.APPLICATION_XML_VALUE)
+    public String wxMessage(@PathVariable String appId, @RequestBody @Validated WxMessageReq wxMessageReq) {
+        messageService.replay(appId, wxMessageReq);
+        return "success";
     }
 
     @RequestMapping(path = "/pay/wx/query")

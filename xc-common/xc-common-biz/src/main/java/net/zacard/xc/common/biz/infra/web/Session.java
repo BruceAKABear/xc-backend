@@ -15,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Session {
 
+    private static final ThreadLocal<UserAccessLog> T_HOLDER = new ThreadLocal<>();
+
     private static final Map<String, Object> HOLDER = new ConcurrentHashMap<>();
 
     private static UserAccessLogRepository userAccessLogRepository = SpringContextHandle.getBean(
@@ -48,4 +50,19 @@ public class Session {
     public static void clean(String userToken) {
         HOLDER.remove(userToken);
     }
+
+    /**
+     * 获取当前会话用户信息
+     */
+    public static UserAccessLog current() {
+        return T_HOLDER.get();
+    }
+
+    /**
+     * 初始化当前用户信息
+     */
+    public static void initCurrent(String userToken) {
+
+    }
+
 }

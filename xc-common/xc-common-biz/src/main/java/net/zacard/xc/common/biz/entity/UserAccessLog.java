@@ -35,6 +35,11 @@ public class UserAccessLog extends AuditDocument {
     private String roleInfoId;
 
     /**
+     * 是否新用户
+     */
+    private Boolean newUser;
+
+    /**
      * 登陆时间
      */
     private Date signInTime;

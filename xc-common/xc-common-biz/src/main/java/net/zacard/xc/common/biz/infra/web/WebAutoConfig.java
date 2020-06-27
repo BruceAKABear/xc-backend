@@ -31,4 +31,9 @@ public class WebAutoConfig {
         return builder.build();
     }
 
+    @ConditionalOnMissingBean
+    @Bean
+    public SystemController systemController() {
+        return new SystemController();
+    }
 }
