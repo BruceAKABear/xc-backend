@@ -96,4 +96,9 @@ public class MiniProgramConfig extends AuditDocument {
      * 咨询id
      */
     private String infoId;
+
+    /**
+     * 其他配置
+     */
+    private MiniProgramExtraConfig extraConfig;
 }

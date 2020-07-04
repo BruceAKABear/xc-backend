@@ -391,17 +391,21 @@ public class HttpUtil {
     }
 
     public static String uploadFile(String url, String filename, byte[] content) {
-        return uploadFile(url, filename, 20000, content, false);
+        return uploadFile(url, filename, "file", 20000, content, false);
+    }
+
+    public static String uploadFile(String url, String filename, String formDataName, byte[] content) {
+        return uploadFile(url, filename, formDataName, 20000, content, false);
     }
 
     public static String uploadFileWithResponse(String url, String filename, byte[] content) {
-        return uploadFile(url, filename, 20000, content, true);
+        return uploadFile(url, filename, "file", 20000, content, true);
     }
 
-    public static String uploadFile(String url, String filename, long timeout, byte[] content, boolean withResponse) {
+    public static String uploadFile(String url, String filename, String formDataName, long timeout, byte[] content, boolean withResponse) {
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart("file", filename,
+                .addFormDataPart(formDataName, filename,
                         RequestBody.create(MediaType.parse("multipart/form-data"), content))
                 .build();
         Request request = new Request.Builder()

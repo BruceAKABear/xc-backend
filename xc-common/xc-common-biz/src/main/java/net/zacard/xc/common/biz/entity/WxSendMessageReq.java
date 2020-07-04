@@ -57,6 +57,31 @@ public class WxSendMessageReq implements Serializable {
         return req;
     }
 
+    public static WxSendMessageReq link(String openid) {
+        WxSendMessageReq req = new WxSendMessageReq();
+        req.setTouser(openid);
+        req.setMsgtype("link");
+
+        // TODO
+        Link link = new Link();
+
+        return req;
+    }
+
+    public static WxSendMessageReq mini(String openid, String title, String pagepath, String thumbMediaId) {
+        WxSendMessageReq req = new WxSendMessageReq();
+        req.setTouser(openid);
+        req.setMsgtype("miniprogrampage");
+
+        Miniprogrampage miniprogrampage = new Miniprogrampage();
+        miniprogrampage.setTitle(title);
+        miniprogrampage.setPagepath(pagepath);
+        miniprogrampage.setThumb_media_id(thumbMediaId);
+
+        req.setMiniprogrampage(miniprogrampage);
+        return req;
+    }
+
     @Data
     private static class Text {
         private String content;
@@ -96,6 +121,7 @@ public class WxSendMessageReq implements Serializable {
         private String thumb_url;
     }
 
+    @Data
     private static class Miniprogrampage {
 
         /**

@@ -2,10 +2,12 @@ package net.zacard.xc.miniprogram.biz.service.user;
 
 import lombok.extern.slf4j.Slf4j;
 import net.zacard.xc.common.api.entity.UserDto;
+import net.zacard.xc.common.biz.entity.MiniProgramConfig;
 import net.zacard.xc.common.biz.entity.OpenIdRes;
 import net.zacard.xc.common.biz.entity.User;
 import net.zacard.xc.common.biz.entity.UserAccessLog;
 import net.zacard.xc.common.biz.infra.web.Session;
+import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
 import net.zacard.xc.common.biz.repository.UserAccessLogRepository;
 import net.zacard.xc.common.biz.repository.UserRepository;
 import net.zacard.xc.common.biz.util.BeanMapper;
@@ -33,6 +35,9 @@ public class UserService {
     private UserAccessLogRepository userAccessLogRepository;
 
     @Autowired
+    private MiniProgramConfigRepository miniProgramConfigRepository;
+
+    @Autowired
     private RestTemplate restTemplate;
 
     public void register(User user) {
@@ -45,8 +50,9 @@ public class UserService {
     }
 
     public OpenIdRes openid(String code, String appId) {
+        MiniProgramConfig miniProgramConfig = miniProgramConfigRepository.findByAppId(appId);
         // 验证appid对应测小程序是否已经在后台注册（新增）
-        String url = Constant.CODE_TO_SESSION_UR + "?appid=" + appId + "&secret=39aa291daf10f3556786827fb7ce070a&js_code=" + code + "&grant_type=authorization_code";
+        String url = Constant.CODE_TO_SESSION_UR + "?appid=" + appId + "&secret=" + miniProgramConfig.getAppSecret() + "&js_code=" + code + "&grant_type=authorization_code";
         OpenIdRes openIdRes = HttpUtil.get(url, OpenIdRes.class);
         openIdRes.setAppId(appId);
         return openIdRes;

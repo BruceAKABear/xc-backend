@@ -52,4 +52,9 @@ public class Constant {
      * 小程序发送消息的url format
      */
     public static final String MINI_PROGRAM_SEND_MESSAGE_URL_FORMAT = "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=%s";
+
+    /**
+     * 小程序上传素材的url format
+     */
+    public static final String MINI_PROGRAM_UPLOAD_MEDIA_URL_FORMAT = "https://api.weixin.qq.com/cgi-bin/media/upload?access_token=%s&type=%s";
 }

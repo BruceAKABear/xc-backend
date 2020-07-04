@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author guoqw
@@ -26,13 +28,13 @@ public class MiniController {
     }
 
     @RequestMapping(path = "/add")
-    public Response add(@RequestBody @Validated MiniProgramConfig miniProgramConfig) {
+    public Response add(@RequestBody @Validated MiniProgramConfig miniProgramConfig, @RequestParam(required = false) MultipartFile file) {
         miniprogramService.add(miniProgramConfig);
         return Response.success();
     }
 
     @RequestMapping(path = "/update")
-    public Response update(@RequestBody @Validated MiniProgramConfig miniProgramConfig) {
+    public Response update(@RequestBody @Validated MiniProgramConfig miniProgramConfig, @RequestParam(required = false) MultipartFile file) {
         miniprogramService.update(miniProgramConfig);
         return Response.success();
     }

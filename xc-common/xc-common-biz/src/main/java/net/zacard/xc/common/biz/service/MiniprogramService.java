@@ -8,6 +8,7 @@ import net.zacard.xc.common.biz.infra.exception.BusinessException;
 import net.zacard.xc.common.biz.repository.ChannelRepository;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
 import net.zacard.xc.common.biz.util.Constant;
+import net.zacard.xc.common.biz.util.ExceptionUtil;
 import net.zacard.xc.common.biz.util.HttpUtil;
 import net.zacard.xc.common.biz.util.RandomStringUtil;
 import net.zacard.xc.common.biz.util.RetryUtil;
@@ -15,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.List;
@@ -88,7 +90,6 @@ public class MiniprogramService {
         }
         String url = String.format(Constant.MINI_PROGRAM_GET_ACCESS_TOKEN_URL_FORMAT, config.getAppId(),
                 config.getAppSecret());
-        System.out.println("url:" + url);
         RetryUtil.retry(() -> {
             AccessTokenRes accessTokenRes = HttpUtil.get(url, AccessTokenRes.class);
             if (accessTokenRes == null) {
@@ -118,6 +119,22 @@ public class MiniprogramService {
             throw BusinessException.withMessage("小程序的id不能为空");
         }
         miniProgramConfigRepository.save(miniProgramConfig);
+    }
+
+    /**
+     * 上传小程序素材(用于客服消息回复)
+     *
+     * @return media_id
+     */
+    public String uploadMedia(String accessToken, MultipartFile file) {
+        String url = String.format(Constant.MINI_PROGRAM_UPLOAD_MEDIA_URL_FORMAT, accessToken, "image");
+        try {
+            HttpUtil.uploadFile(url, file.getOriginalFilename(), "media", file.getBytes());
+            // TODO
+            return "ok";
+        } catch (Exception e) {
+            throw ExceptionUtil.unchecked(e);
+        }
     }
 
 }
