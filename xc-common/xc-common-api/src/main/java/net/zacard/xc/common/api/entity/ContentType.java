@@ -24,5 +24,5 @@ public enum ContentType {
     /**
      * 列表
      */
-    LIST
+//    LIST
 }

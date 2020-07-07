@@ -16,9 +16,14 @@ public class MiniProgramExtraConfig implements Serializable {
     private static final long serialVersionUID = 1803162636710500615L;
 
     /**
-     * 支付跳转的小程序pagePath
+     * 请求支付跳转的小程序pagePath
      */
-    private String payPagePath;
+    private String reqPayPagePath;
+
+    /**
+     * 响应支付跳转的小程序pagePath
+     */
+    private String resPayPagePath;
 
     /**
      * 支付跳转的小程序标题

@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 小程序配置
@@ -76,10 +77,10 @@ public class MiniProgramConfig extends AuditDocument {
      */
     private Date accessTokenRefreshTime;
 
-//    /**
-//     * 小程序承接的渠道商列表
-//     */
-//    private List<String> channelIds;
+    /**
+     * 小程序承接的展示的渠道商列表
+     */
+    private List<String> channelIds;
 
     /**
      * 小程序版本

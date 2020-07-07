@@ -56,14 +56,13 @@ public class MiniprogramService {
             miniProgramConfig.setMessageToken(RandomStringUtil.getRandomUpperString());
         }
         try {
+            updateAccessToken(miniProgramConfig);
             miniProgramConfigRepository.save(miniProgramConfig);
         } catch (Exception e) {
             // 可能是appId重复
-            log.error("保存小程序错误，appId(" + miniProgramConfig.getAppId() + ")重复");
+            log.error("保存小程序错误，appId(" + miniProgramConfig.getAppId() + ")重复", e);
             throw BusinessException.withMessage("appId(" + miniProgramConfig.getAppId() + ")重复");
         }
-        // 获取access_token
-        refreshAccessToken(miniProgramConfig.getAppId());
     }
 
     /**
@@ -75,9 +74,14 @@ public class MiniprogramService {
      */
     public MiniProgramConfig refreshAccessToken(String appId) {
         MiniProgramConfig config = miniProgramConfigRepository.findByAppId(appId);
+        return refreshAccessTokenAndSave(config);
+    }
+
+    public MiniProgramConfig refreshAccessTokenAndSave(MiniProgramConfig config) {
         if (config == null) {
-            throw BusinessException.withMessage("不存在小程序(appId:" + appId + ")");
+            throw BusinessException.withMessage("不存在小程序");
         }
+        String appId = config.getAppId();
         // 先判断是否过期
         Long expiresIn = config.getAccessTokenExpiresIn();
         String accessToken = config.getAccessToken();
@@ -88,30 +92,37 @@ public class MiniprogramService {
                 return config;
             }
         }
-        String url = String.format(Constant.MINI_PROGRAM_GET_ACCESS_TOKEN_URL_FORMAT, config.getAppId(),
-                config.getAppSecret());
+//        String url = String.format(Constant.MINI_PROGRAM_GET_ACCESS_TOKEN_URL_FORMAT, config.getAppId(),
+//                config.getAppSecret());
         RetryUtil.retry(() -> {
-            AccessTokenRes accessTokenRes = HttpUtil.get(url, AccessTokenRes.class);
-            if (accessTokenRes == null) {
-                throw BusinessException.withMessage("请求access_token异常(appId:" + appId + ")");
-            }
-            String access_token = accessTokenRes.getAccess_token();
-            // 这里一定要先判断access_token,如果获取成功，是没有errcode的
-            if (StringUtils.isBlank(access_token)) {
-                Long errcode = accessTokenRes.getErrcode();
-                // 请求失败的情况
-                if (errcode == null || errcode != 0) {
-                    throw BusinessException.withMessage("请求access_token异常(appId:" + appId
-                            + ";errcode:" + errcode + ";errmsg:" + accessTokenRes.getErrmsg() + ")");
-                }
-            }
-            // 保存access_token
-            config.setAccessToken(access_token);
-            config.setAccessTokenExpiresIn(accessTokenRes.getExpires_in());
-            config.setAccessTokenRefreshTime(new Date());
+            updateAccessToken(config);
             miniProgramConfigRepository.save(config);
         });
         return config;
+    }
+
+    public void updateAccessToken(MiniProgramConfig config) {
+        String url = String.format(Constant.MINI_PROGRAM_GET_ACCESS_TOKEN_URL_FORMAT, config.getAppId(),
+                config.getAppSecret());
+        String appId = config.getAppId();
+        AccessTokenRes accessTokenRes = HttpUtil.get(url, AccessTokenRes.class);
+        if (accessTokenRes == null) {
+            throw BusinessException.withMessage("请求access_token异常(appId:" + appId + ")");
+        }
+        String access_token = accessTokenRes.getAccess_token();
+        // 这里一定要先判断access_token,如果获取成功，是没有errcode的
+        if (StringUtils.isBlank(access_token)) {
+            Long errcode = accessTokenRes.getErrcode();
+            // 请求失败的情况
+            if (errcode == null || errcode != 0) {
+                throw BusinessException.withMessage("请求access_token异常(appId:" + appId
+                        + ";errcode:" + errcode + ";errmsg:" + accessTokenRes.getErrmsg() + ")");
+            }
+        }
+        // 保存access_token
+        config.setAccessToken(access_token);
+        config.setAccessTokenExpiresIn(accessTokenRes.getExpires_in());
+        config.setAccessTokenRefreshTime(new Date());
     }
 
     public void update(MiniProgramConfig miniProgramConfig) {

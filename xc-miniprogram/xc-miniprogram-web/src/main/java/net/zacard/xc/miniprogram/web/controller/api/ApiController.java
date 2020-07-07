@@ -87,7 +87,7 @@ public class ApiController {
     }
 
     @PostMapping(path = "/wx/message/{appId}",
-            consumes = MediaType.APPLICATION_XML_VALUE)
+            consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE})
     public String wxMessage(@PathVariable String appId, @RequestBody @Validated WxMessageReq wxMessageReq) {
         messageService.replay(appId, wxMessageReq);
         return "success";
