@@ -15,13 +15,6 @@ spring:
   thymeleaf:
     cache: false
 
-  data:
-    mongodb:
-      host: 127.0.0.1
-      port: 27017
-      database: wx-mini
-      field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
-
 server:
   tomcat:
     max-threads: 200
