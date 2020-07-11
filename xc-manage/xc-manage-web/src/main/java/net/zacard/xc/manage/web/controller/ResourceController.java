@@ -27,3 +27,4 @@ public class ResourceController {
         return Response.success(resourceService.upload(file));
     }
 }
+

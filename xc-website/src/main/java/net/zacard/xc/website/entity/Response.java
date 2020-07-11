@@ -22,4 +22,11 @@ public class Response implements Serializable {
         res.setCode(200);
         return res;
     }
+
+    public static Response fail(String errorMsg) {
+        Response res = new Response();
+        res.setCode(500);
+        res.setMsg(errorMsg);
+        return res;
+    }
 }

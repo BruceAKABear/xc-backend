@@ -59,10 +59,8 @@ spring:
   profiles: prod
   data:
     mongodb:
-      host: 172.17.0.13
-      port: 27017
-      database: wx-mini
       field-naming-strategy: org.springframework.data.mapping.model.SnakeCaseFieldNamingStrategy
+      uri: mongodb://xc-website:dvsog6ys@172.17.0.13:28018/xc-website
 
 server:
   tomcat:

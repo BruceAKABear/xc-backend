@@ -28,6 +28,9 @@ server:
 ---
 spring:
   profiles: dev
+  http:
+    multipart:
+      location: /Users/guoqw/netease/docs/技术工作组项目/日志平台/test
   data:
     mongodb:
       host: 127.0.0.1

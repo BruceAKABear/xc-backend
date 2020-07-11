@@ -1,6 +1,7 @@
 package net.zacard.xc.manage.web;
 
 import lombok.extern.slf4j.Slf4j;
+import net.zacard.xc.common.biz.util.StaticResourceUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -26,6 +27,12 @@ public class Application {
         ConfigurableEnvironment env = SpringApplication
                 .run(Application.class, args)
                 .getEnvironment();
+        String[] activeProfiles = env.getActiveProfiles();
+        for (String activeProfile : activeProfiles) {
+            if (activeProfile.equals("dev")) {
+                StaticResourceUtil.changePath("/Users/guoqw/netease/docs/技术工作组项目/日志平台/test");
+            }
+        }
         log.info(
                 "xc-manage:Access URLs:\n----------------------------------------------------------\n\t" +
                         "Local: \t\thttp://127.0.0.1:{}\n\t" +
