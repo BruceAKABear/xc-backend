@@ -1,10 +1,11 @@
 package net.zacard.xc.common.biz.entity;
 
 import lombok.Data;
-import net.zacard.xc.common.api.entity.Content;
 import net.zacard.xc.common.biz.infra.mongo.AuditDocument;
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -19,11 +20,13 @@ public class Info extends AuditDocument {
 
     private static final long serialVersionUID = -4968599342054864558L;
 
+    @NotBlank(message = "咨询页名称不能为空")
     private String name;
 
     /**
      * 咨询页内容列表
      */
+    @Valid
     private List<Content> contents;
 
     /**

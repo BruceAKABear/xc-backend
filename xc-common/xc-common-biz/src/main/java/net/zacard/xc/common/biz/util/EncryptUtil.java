@@ -3,6 +3,8 @@ package net.zacard.xc.common.biz.util;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -19,6 +21,10 @@ import java.util.Map;
  */
 @Slf4j
 public class EncryptUtil {
+
+    private static final String AES_KEY = "AES";
+
+    private static final String DEFAULT_SECRET_KEY = "XC2020CX0202SSSS";
 
     /**
      * 微信支付，对于给定字段签名
@@ -111,4 +117,66 @@ public class EncryptUtil {
         }
         return builder.toString();
     }
+
+    private static byte[] hexToBuffer(String hex) {
+        if (hex == null) {
+            return null;
+        }
+        int l = hex.length();
+        if (l % 2 == 1) {
+            return null;
+        }
+        byte[] b = new byte[l / 2];
+        for (int i = 0; i != l / 2; i++) {
+            b[i] = (byte) Integer.parseInt(hex.substring(i * 2, i * 2 + 2),
+                    16);
+        }
+        return b;
+    }
+
+    public static String aesEncrypt(String src) {
+        return aesEncrypt(src, DEFAULT_SECRET_KEY);
+    }
+
+    public static String aesDecrypt(String src) {
+        return aesDecrypt(src, DEFAULT_SECRET_KEY);
+    }
+
+    public static String aesEncrypt(String src, String key) {
+        byte[] encrypted;
+        try {
+            if (key == null || key.length() != 16) {
+                throw new Exception("key不满足条件");
+            }
+            byte[] raw = key.getBytes();
+            SecretKeySpec skeySpec = new SecretKeySpec(raw, AES_KEY);
+            Cipher cipher = Cipher.getInstance(AES_KEY);
+            cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
+            encrypted = cipher.doFinal(src.getBytes());
+        } catch (Exception e) {
+            log.error("加密失败!", e);
+            throw ExceptionUtil.unchecked(e);
+        }
+        return bufferToHex(encrypted);
+    }
+
+    public static String aesDecrypt(String src, String key) {
+        byte[] original = new byte[0];
+        try {
+            if (key == null || key.length() != 16) {
+                throw new Exception("key不满足条件");
+            }
+            byte[] raw = key.getBytes();
+            SecretKeySpec skeySpec = new SecretKeySpec(raw, AES_KEY);
+            Cipher cipher = Cipher.getInstance(AES_KEY);
+            cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+            byte[] encrypted1 = hexToBuffer(src);
+            original = cipher.doFinal(encrypted1);
+        } catch (Exception e) {
+            log.error("解密失败!", e);
+            throw ExceptionUtil.unchecked(e);
+        }
+        return new String(original);
+    }
+
 }

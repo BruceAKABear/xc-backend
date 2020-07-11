@@ -57,4 +57,9 @@ public class Constant {
      * 小程序上传素材的url format
      */
     public static final String MINI_PROGRAM_UPLOAD_MEDIA_URL_FORMAT = "https://api.weixin.qq.com/cgi-bin/media/upload?access_token=%s&type=%s";
+
+    /**
+     * 域名
+     */
+    public static final String DOMAIN = "https://xichengame.net";
 }

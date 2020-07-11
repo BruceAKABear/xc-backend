@@ -1,12 +1,17 @@
 package net.zacard.xc.common.biz.service;
 
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import net.zacard.xc.common.biz.entity.AccessTokenRes;
 import net.zacard.xc.common.biz.entity.Channel;
+import net.zacard.xc.common.biz.entity.Info;
+import net.zacard.xc.common.biz.entity.MediaUploadRes;
 import net.zacard.xc.common.biz.entity.MiniProgramConfig;
+import net.zacard.xc.common.biz.entity.MiniProgramDto;
 import net.zacard.xc.common.biz.infra.exception.BusinessException;
 import net.zacard.xc.common.biz.repository.ChannelRepository;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
+import net.zacard.xc.common.biz.util.BeanMapper;
 import net.zacard.xc.common.biz.util.Constant;
 import net.zacard.xc.common.biz.util.ExceptionUtil;
 import net.zacard.xc.common.biz.util.HttpUtil;
@@ -34,6 +39,9 @@ public class MiniprogramService {
 
     @Autowired
     private ChannelRepository channelRepository;
+
+    @Autowired
+    private InfoService infoService;
 
     public MiniProgramConfig getByAppId(String appId) {
         return miniProgramConfigRepository.findByAppId(appId);
@@ -140,12 +148,32 @@ public class MiniprogramService {
     public String uploadMedia(String accessToken, MultipartFile file) {
         String url = String.format(Constant.MINI_PROGRAM_UPLOAD_MEDIA_URL_FORMAT, accessToken, "image");
         try {
-            HttpUtil.uploadFile(url, file.getOriginalFilename(), "media", file.getBytes());
-            // TODO
-            return "ok";
+            String json = HttpUtil.uploadFile(url, file.getOriginalFilename(), "media", file.getBytes());
+            MediaUploadRes mediaUploadRes = JSON.parseObject(json, MediaUploadRes.class);
+            if (Integer.valueOf(40004).equals(mediaUploadRes.getErrcode())) {
+                throw BusinessException.withMessage("无效媒体文件类型");
+            }
+            return mediaUploadRes.getMedia_id();
         } catch (Exception e) {
             throw ExceptionUtil.unchecked(e);
         }
+    }
+
+    public MiniProgramDto get(String appId) {
+        MiniProgramConfig mini = miniProgramConfigRepository.findByAppId(appId);
+        if (mini == null) {
+            throw BusinessException.withMessage("小程序appId不能为空");
+        }
+        MiniProgramDto dto = BeanMapper.map(mini, MiniProgramDto.class);
+        String showType = mini.getShowType();
+        if ("info".equals(showType)) {
+            Info info = infoService.get(mini.getInfoId());
+            dto.setInfo(info);
+        } else {
+            List<Channel> channels = channelRepository.findByMiniProgramConfigId(mini.getId());
+            dto.setChannels(channels);
+        }
+        return dto;
     }
 
 }

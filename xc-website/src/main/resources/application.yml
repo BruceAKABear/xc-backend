@@ -15,6 +15,10 @@ spring:
   thymeleaf:
     cache: false
 
+  devtools:
+    livereload:
+      enabled: true
+
 server:
   tomcat:
     max-threads: 200
