@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class BlogController {
 
     @RequestMapping(path = "/add")
-    public Response add(@RequestBody Blog blog) {
+    public Response add(Blog blog) {
         log.info("收到信息发布：" + JSON.toJSONString(blog, true));
         return Response.ok();
     }
