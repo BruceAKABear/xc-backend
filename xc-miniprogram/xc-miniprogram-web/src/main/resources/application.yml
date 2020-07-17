@@ -7,7 +7,7 @@ spring:
     multipart:
       max-file-size: 512MB
       max-request-size: 512MB
-      location: /home/webapps/xc/minin/temp_files
+      location: /home/webapps/xc-minin/temp_files
   mvc:
     throw-exception-if-no-handler-found: true
   profiles:

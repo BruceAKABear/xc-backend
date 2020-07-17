@@ -36,10 +36,10 @@ public class ChannelServiceTest {
     @Test
     public void add() {
         Channel channel = new Channel();
-        channel.setName("哪吒游戏");
-        channel.setAppId("wx0e63bb140eabbcab");
+        channel.setName("深海游戏");
+        channel.setAppId("wxedf5635dea3def45");
         channel.setAppSecret(RandomStringUtil.getRandomUpperString());
-        channel.setMiniProgramConfigId("5edb298eb35908d4df9e111f");
+        channel.setMiniProgramConfigId("5f0ff6337ea3c61c3f29f8ab");
 //        channel.setPayCallbackMethod("POST");
         channel.setPayCallbackUrl("http://127.0.0.1:8081/test/callback");
         channelService.add(channel);

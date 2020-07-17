@@ -53,6 +53,11 @@ public class MiniProgramConfig extends AuditDocument {
     private String key;
 
     /**
+     * 业务域名校验文件
+     */
+    private String bizDomainCheckFile;
+
+    /**
      * 设置服务器接收消息设置的token
      */
     private String messageToken;

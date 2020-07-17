@@ -23,7 +23,7 @@ public class ResourceController {
      * 返回资源访问url
      */
     @RequestMapping(path = "/upload")
-    public Response<String> upload(@RequestParam MultipartFile file) {
+    public Response<String> upload(@RequestParam(name = "upload") MultipartFile file) {
         return Response.success(resourceService.upload(file));
     }
 }

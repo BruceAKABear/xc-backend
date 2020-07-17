@@ -34,10 +34,13 @@ public class MiniProgramConfigRepositoryTest {
     @Ignore
     public void add() throws Exception {
         MiniProgramConfig miniProgramConfig = new MiniProgramConfig();
-        miniProgramConfig.setName("测试小程序01");
-        miniProgramConfig.setAppId("wx0e63bb140eabbcab");
+        miniProgramConfig.setName("畅玩经典趣游");
+        miniProgramConfig.setAppId("wxedf5635dea3def45");
         miniProgramConfig.setMchId("1597282921");
         miniProgramConfig.setKey("2782F226BBAE4C4BA136686AB90DF43F");
+        miniProgramConfig.setAppSecret("bd49956f1c6855326907b3e0215b540b");
+        miniProgramConfig.setMessageToken(RandomStringUtil.getRandomUpperString());
+        miniProgramConfig.setMessageEncodingAESKey("dfk3lwJS1tZ5riaLrq04u6ByKsbCh6MyxBmeZ2BncK4");
         miniProgramConfigRepository.save(miniProgramConfig);
     }
 
