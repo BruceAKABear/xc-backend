@@ -4,7 +4,6 @@ import lombok.Data;
 import org.hibernate.validator.constraints.NotBlank;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author guoqw
@@ -44,9 +43,9 @@ public class MiniProgramDto implements Serializable {
     private Info info;
 
     /**
-     * 小程序承接的展示的渠道商列表
+     * 小程序承接的展示的渠道
      */
-    private List<Channel> channels;
+    private Channel channel;
 
     /**
      * 其他配置

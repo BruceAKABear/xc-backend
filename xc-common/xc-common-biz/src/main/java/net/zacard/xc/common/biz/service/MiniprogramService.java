@@ -171,7 +171,7 @@ public class MiniprogramService {
             dto.setInfo(info);
         } else {
             List<Channel> channels = channelRepository.findByMiniProgramConfigId(mini.getId());
-            dto.setChannels(channels);
+            dto.setChannel(channels.get(0));
         }
         return dto;
     }
