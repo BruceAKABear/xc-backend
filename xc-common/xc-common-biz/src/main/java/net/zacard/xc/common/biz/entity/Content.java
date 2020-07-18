@@ -18,7 +18,6 @@ public class Content extends AuditDocument {
 
     private static final long serialVersionUID = -6602114118815758802L;
 
-    @NotBlank(message = "infoId不能为空")
     private String infoId;
 
     @NotNull(message = "type不能为空")
