@@ -18,7 +18,7 @@ public class MiniController {
     @Autowired
     private MiniprogramService miniprogramService;
 
-    @RequestMapping(path = "/mini/get")
+    @RequestMapping(path = "/get")
     public Response<MiniProgramDto> get(String appId) {
         return Response.success(miniprogramService.get(appId));
     }
