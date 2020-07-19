@@ -62,4 +62,9 @@ public class Constant {
      * 域名
      */
     public static final String DOMAIN = "https://xichengame.net";
+
+    /**
+     * 日期格式化
+     */
+    public static final String DS_FORMAT = "yyyy-MM-dd";
 }
