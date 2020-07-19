@@ -45,7 +45,7 @@ public class StateService {
 
     public List<MainStat> stat(StatDto statDto) {
         String channelId = statDto.getChannelId();
-        Long start = statDto.getStart()t;
+        Long start = statDto.getStart();
         Long end = statDto.getEnd();
         Date startDate = new DateTime(start).withTimeAtStartOfDay().toDate();
         Date endDate = new DateTime(end).plusDays(1).withTimeAtStartOfDay().toDate();
