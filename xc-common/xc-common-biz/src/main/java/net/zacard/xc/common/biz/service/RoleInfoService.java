@@ -6,6 +6,7 @@ import net.zacard.xc.common.api.entity.RoleInfoDto;
 import net.zacard.xc.common.biz.entity.RoleInfo;
 import net.zacard.xc.common.biz.entity.RoleOptLog;
 import net.zacard.xc.common.biz.entity.UserAccessLog;
+import net.zacard.xc.common.biz.infra.exception.BusinessException;
 import net.zacard.xc.common.biz.infra.web.Session;
 import net.zacard.xc.common.biz.repository.RoleInfoRepository;
 import net.zacard.xc.common.biz.repository.RoleOptLogRepository;
@@ -55,6 +56,9 @@ public class RoleInfoService {
     public void update(RoleInfoDto roleInfoDto) {
         // 获取用户会话
         UserAccessLog userAccessLog = Session.checkedUser(roleInfoDto.getUserToken());
+        if (userAccessLog.getRoleInfoId() == null) {
+            throw BusinessException.withMessage("角色还未创建");
+        }
         RoleInfo roleInfo = roleInfoRepository.findOne(userAccessLog.getRoleInfoId());
         // 用户角色还未新建好,直接新建
         if (roleInfo == null) {
