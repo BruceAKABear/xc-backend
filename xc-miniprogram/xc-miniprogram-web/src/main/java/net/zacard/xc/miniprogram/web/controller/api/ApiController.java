@@ -46,7 +46,7 @@ public class ApiController {
     private MessageService messageService;
 
     @RequestMapping(path = "/pay/wx/callback",
-            consumes = MediaType.APPLICATION_XML_VALUE,
+            consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE},
             produces = MediaType.APPLICATION_XML_VALUE)
     public PayCallbackRes payCallback(@RequestBody PayCallbackReq payCallbackReq) {
         // 参数校验

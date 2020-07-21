@@ -3,6 +3,7 @@ package net.zacard.xc.common.api.entity;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotBlank;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -44,7 +45,7 @@ public class RoleInfoDto implements Serializable {
     /**
      * 角色虚拟货币数量
      */
-    @NotBlank(message = "money不能为空")
+    @NotNull(message = "money不能为空")
     private Integer money;
 
     @NotBlank(message = "sign不能为空")

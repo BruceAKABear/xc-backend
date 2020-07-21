@@ -256,7 +256,6 @@ public class PayService {
                 log.info("开始第{}次回调渠道({}:{})", i, channel.getName(), channel.getId());
                 if (method == null || "".equals(method) || "POST".equals(method)) {
                     // 默认使用POST回调
-                    // 不关心渠道方的回调结果
                     try {
                         String callbackResult = HttpUtil.postString(callbackUrl, req);
                         if (!Constant.CODE_SUCCESS.equals(callbackResult)) {
