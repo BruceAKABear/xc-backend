@@ -6,7 +6,6 @@ import net.zacard.xc.common.api.entity.RoleInfoDto;
 import net.zacard.xc.common.biz.entity.RoleInfo;
 import net.zacard.xc.common.biz.entity.RoleOptLog;
 import net.zacard.xc.common.biz.entity.UserAccessLog;
-import net.zacard.xc.common.biz.infra.exception.BusinessException;
 import net.zacard.xc.common.biz.infra.web.Session;
 import net.zacard.xc.common.biz.repository.RoleInfoRepository;
 import net.zacard.xc.common.biz.repository.RoleOptLogRepository;
@@ -57,7 +56,22 @@ public class RoleInfoService {
         // 获取用户会话
         UserAccessLog userAccessLog = Session.checkedUser(roleInfoDto.getUserToken());
         if (userAccessLog.getRoleInfoId() == null) {
-            throw BusinessException.withMessage("角色还未创建");
+            // 可能重新登录过，使用roleInfo的token获取
+            RoleInfo roleInfo = BeanMapper.map(roleInfoDto, RoleInfo.class);
+            roleInfo.setChannelId(userAccessLog.getChannelId());
+            roleInfo.setOpenid(userAccessLog.getOpenid());
+            roleInfo.setUserId(userAccessLog.getUserId());
+            // 生成role token
+            roleInfo.buildToken();
+            roleInfo = roleInfoRepository.findByToken(roleInfo.getToken());
+            if (roleInfo == null) {
+                log.info("角色还未创建，roleInfoDto:" + roleInfoDto);
+                // 直接创建
+                add(roleInfoDto);
+                userAccessLog = Session.checkedUser(roleInfoDto.getUserToken());
+            } else {
+                userAccessLog.setRoleInfoId(roleInfo.getId());
+            }
         }
         RoleInfo roleInfo = roleInfoRepository.findOne(userAccessLog.getRoleInfoId());
         // 用户角色还未新建好,直接新建

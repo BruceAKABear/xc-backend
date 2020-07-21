@@ -7,8 +7,11 @@ import net.zacard.xc.common.api.entity.RoleInfoDto;
 import net.zacard.xc.common.biz.entity.MiniProgramConfig;
 import net.zacard.xc.common.biz.entity.PayCallbackReq;
 import net.zacard.xc.common.biz.entity.PayCallbackRes;
+import net.zacard.xc.common.biz.entity.UserAccessLog;
 import net.zacard.xc.common.biz.entity.WxMessageReq;
+import net.zacard.xc.common.biz.infra.web.Session;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
+import net.zacard.xc.common.biz.repository.UserAccessLogRepository;
 import net.zacard.xc.common.biz.util.EncryptUtil;
 import net.zacard.xc.common.biz.util.ObjectUtil;
 import net.zacard.xc.common.biz.util.RandomStringUtil;
@@ -54,6 +57,9 @@ public class ApiControllerTest {
 
     @Autowired
     private MiniProgramConfigRepository miniProgramConfigRepository;
+
+    @Autowired
+    private UserAccessLogRepository userAccessLogRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -166,7 +172,40 @@ public class ApiControllerTest {
     }
 
     @Test
-    public void roleInfo() {
+    public void roleInfo() throws Exception {
+        String json = " [\n" +
+                "    'area' => '447',\n" +
+                "    'level' => '1',\n" +
+                "    'money' => 1,\n" +
+                "    'name' => '弑神丿滨海',\n" +
+                "    'type' => 'UPDATE-LEVEL',\n" +
+                "    'userToken' => 'ae9d5df325fb4a97bfcc7493a6839dbe',\n" +
+                "    'sign' => '24D11FD04824C5FD4E0448892AAE0BC8',\n" +
+                "]";
+        String userToken = "ae9d5df325fb4a97bfcc7493a6839dbe";
+        RoleInfoDto roleInfoDto = new RoleInfoDto();
+        roleInfoDto.setUserToken(userToken);
+        roleInfoDto.setMoney(1);
+        roleInfoDto.setLevel("1");
+        roleInfoDto.setArea("447");
+        roleInfoDto.setType("UPDATE-LEVEL");
+        roleInfoDto.setName("弑神丿滨海");
+        roleInfoDto.setSign("24D11FD04824C5FD4E0448892AAE0BC8");
+
+        UserAccessLog userAccessLog = userAccessLogRepository.findByUserToken(userToken);
+        Session.create(userToken,userAccessLog);
+
+        MvcResult result = restMockMvc.perform(post("/api/game/role/info")
+                .content(JSON.toJSONBytes(roleInfoDto))
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("200"))
+                .andReturn();
+        String bodyStr = result.getResponse().getContentAsString();
+        System.out.println("result:" + JSON.toJSONString(JSON.parseObject(bodyStr), true));
     }
 
+    @Test
+    public void wxMessageCheck() {
+    }
 }

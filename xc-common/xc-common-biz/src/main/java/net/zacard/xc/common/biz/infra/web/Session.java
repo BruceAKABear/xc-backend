@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * TODO 类似jwt，能够解密出来基本信息
+ * TODO 目前userToken存在分布式的问题，尽快转为jwt的形式，能够直接解析出必要信息
  *
  * @author guoqw
  * @since 2020-06-06 09:05
