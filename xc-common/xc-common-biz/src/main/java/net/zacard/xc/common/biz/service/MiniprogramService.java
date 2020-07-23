@@ -8,6 +8,7 @@ import net.zacard.xc.common.biz.entity.Info;
 import net.zacard.xc.common.biz.entity.MediaUploadRes;
 import net.zacard.xc.common.biz.entity.MiniProgramConfig;
 import net.zacard.xc.common.biz.entity.MiniProgramDto;
+import net.zacard.xc.common.biz.entity.MiniProgramExtraConfig;
 import net.zacard.xc.common.biz.infra.exception.BusinessException;
 import net.zacard.xc.common.biz.repository.ChannelRepository;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
@@ -62,6 +63,15 @@ public class MiniprogramService {
         }
         if (StringUtils.isBlank(miniProgramConfig.getMessageToken())) {
             miniProgramConfig.setMessageToken(RandomStringUtil.getRandomUpperString());
+        }
+        if (miniProgramConfig.getExtraConfig() == null) {
+            // TODO 这里的mediaId可能需要重新上传，资源有有效期
+            String mediaId = "Hr7HR7lxwsX2diEQ3ISg1HnhlCqBOAAVQTjphy2DDr2KpnQ6pHVf85TpWNXPXFPN";
+            MiniProgramExtraConfig extraConfig = new MiniProgramExtraConfig();
+            extraConfig.setResPayPagePath("pages/pay/pay");
+            extraConfig.setPayThumbMediaId(mediaId);
+            extraConfig.setPayTitle("点我充值");
+            miniProgramConfig.setExtraConfig(extraConfig);
         }
         try {
             updateAccessToken(miniProgramConfig);
@@ -136,6 +146,10 @@ public class MiniprogramService {
     public void update(MiniProgramConfig miniProgramConfig) {
         if (StringUtils.isBlank(miniProgramConfig.getId())) {
             throw BusinessException.withMessage("小程序的id不能为空");
+        }
+        if (miniProgramConfig.getExtraConfig() == null) {
+            MiniProgramConfig one = miniProgramConfigRepository.findOne(miniProgramConfig.getId());
+            miniProgramConfig.setExtraConfig(one.getExtraConfig());
         }
         miniProgramConfigRepository.save(miniProgramConfig);
     }
