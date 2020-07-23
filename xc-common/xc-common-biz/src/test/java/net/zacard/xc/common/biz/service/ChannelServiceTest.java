@@ -1,6 +1,8 @@
 package net.zacard.xc.common.biz.service;
 
+import com.alibaba.fastjson.JSON;
 import net.zacard.xc.common.biz.entity.Channel;
+import net.zacard.xc.common.biz.repository.ChannelRepository;
 import net.zacard.xc.common.biz.util.RandomStringUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -20,6 +22,9 @@ public class ChannelServiceTest {
 
     @Autowired
     private ChannelService channelService;
+
+    @Autowired
+    private ChannelRepository channelRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -47,5 +52,12 @@ public class ChannelServiceTest {
 
     @Test
     public void update() {
+        Channel channel = new Channel();
+        channel.setId("5f02cf117ea3c61f2f3c8e98");
+        channel = channelRepository.findOne(channel.getId());
+        channel.setGameH5Url("https://h5.binglue.com/plat2/xichen/index?id=8");
+        channelService.update(channel);
+        channel = channelRepository.findOne(channel.getId());
+        System.out.println("channel:" + JSON.toJSONString(channel, true));
     }
 }
