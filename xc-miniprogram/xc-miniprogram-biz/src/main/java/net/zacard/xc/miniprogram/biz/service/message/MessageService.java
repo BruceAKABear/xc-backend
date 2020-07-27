@@ -14,6 +14,7 @@ import net.zacard.xc.common.biz.service.MiniprogramService;
 import net.zacard.xc.common.biz.util.Constant;
 import net.zacard.xc.common.biz.util.EncryptUtil;
 import net.zacard.xc.common.biz.util.HttpUtil;
+import net.zacard.xc.common.biz.util.RetryUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -88,15 +89,20 @@ public class MessageService {
         WxSendMessageReq messageReq = WxSendMessageReq.mini(req.getFromUserName(), extraConfig.getPayTitle(),
                 extraConfig.getResPayPagePath() + "?" + payParam, extraConfig.getPayThumbMediaId());
         // 发送消息
-        String url = String.format(Constant.MINI_PROGRAM_SEND_MESSAGE_URL_FORMAT, config.getAccessToken());
+        RetryUtil.retry(() -> {
+            String url = String.format(Constant.MINI_PROGRAM_SEND_MESSAGE_URL_FORMAT, config.getAccessToken());
 //        WxSendMessageReq wxSendMessageReq = WxSendMessageReq.text(req.getFromUserName(), "您好");
-        WxSendMessageRes res = HttpUtil.post(url, messageReq, WxSendMessageRes.class);
-        if (res == null || res.getErrcode() == null) {
-            throw BusinessException.withMessage("回复消息失败(appId:" + appId + ")");
-        }
-        if (res.getErrcode() != 0) {
-            throw BusinessException.withMessage(
-                    "回复消息失败(appid:" + appId + "errcode:" + res.getErrcode() + ";errmsg:" + res.getErrmsg() + ")");
-        }
+            WxSendMessageRes res = HttpUtil.post(url, messageReq, WxSendMessageRes.class);
+            if (res == null || res.getErrcode() == null) {
+                throw BusinessException.withMessage("回复消息失败(appId:" + appId + ")");
+            }
+            if (res.getErrcode() != 0) {
+                // 这里应该是accessToken过期了，强制刷新
+                MiniProgramConfig tmp = miniprogramService.refreshAccessToken(appId, true);
+                config.setAccessToken(tmp.getAccessToken());
+                throw BusinessException.withMessage(
+                        "回复消息失败(appid:" + appId + "errcode:" + res.getErrcode() + ";errmsg:" + res.getErrmsg() + ")");
+            }
+        });
     }
 }

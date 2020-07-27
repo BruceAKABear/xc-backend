@@ -92,26 +92,36 @@ public class MiniprogramService {
      */
     public MiniProgramConfig refreshAccessToken(String appId) {
         MiniProgramConfig config = miniProgramConfigRepository.findByAppId(appId);
-        return refreshAccessTokenAndSave(config);
+        return refreshAccessTokenAndSave(config, false);
     }
 
-    public MiniProgramConfig refreshAccessTokenAndSave(MiniProgramConfig config) {
+    /**
+     * 刷新小程序的accessToken
+     *
+     * @param appId 小程序id
+     * @param force 是否强制刷新
+     */
+    public MiniProgramConfig refreshAccessToken(String appId, boolean force) {
+        MiniProgramConfig config = miniProgramConfigRepository.findByAppId(appId);
+        return refreshAccessTokenAndSave(config, force);
+    }
+
+    public MiniProgramConfig refreshAccessTokenAndSave(MiniProgramConfig config, boolean force) {
         if (config == null) {
             throw BusinessException.withMessage("不存在小程序");
         }
-        String appId = config.getAppId();
         // 先判断是否过期
-        Long expiresIn = config.getAccessTokenExpiresIn();
-        String accessToken = config.getAccessToken();
-        Date refreshTime = config.getAccessTokenRefreshTime();
-        if (expiresIn != null && accessToken != null && refreshTime != null) {
-            // 没有过期直接返回accessToken
-            if (new DateTime(refreshTime).plusSeconds(expiresIn.intValue()).isAfter(DateTime.now())) {
-                return config;
+        if (!force) {
+            Long expiresIn = config.getAccessTokenExpiresIn();
+            String accessToken = config.getAccessToken();
+            Date refreshTime = config.getAccessTokenRefreshTime();
+            if (expiresIn != null && accessToken != null && refreshTime != null) {
+                // 没有过期直接返回accessToken
+                if (new DateTime(refreshTime).plusSeconds(expiresIn.intValue()).isAfter(DateTime.now())) {
+                    return config;
+                }
             }
         }
-//        String url = String.format(Constant.MINI_PROGRAM_GET_ACCESS_TOKEN_URL_FORMAT, config.getAppId(),
-//                config.getAppSecret());
         RetryUtil.retry(() -> {
             updateAccessToken(config);
             miniProgramConfigRepository.save(config);
@@ -147,7 +157,8 @@ public class MiniprogramService {
         if (StringUtils.isBlank(miniProgramConfig.getId())) {
             throw BusinessException.withMessage("小程序的id不能为空");
         }
-        if (miniProgramConfig.getExtraConfig() == null) {
+        if (miniProgramConfig.getExtraConfig() == null || StringUtils.isBlank(
+                miniProgramConfig.getExtraConfig().getReqPayPagePath())) {
             MiniProgramConfig one = miniProgramConfigRepository.findOne(miniProgramConfig.getId());
             miniProgramConfig.setExtraConfig(one.getExtraConfig());
         }
