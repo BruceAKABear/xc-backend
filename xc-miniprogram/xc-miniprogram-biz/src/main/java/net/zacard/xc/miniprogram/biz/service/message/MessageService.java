@@ -86,8 +86,10 @@ public class MessageService {
         } else {
             payParam = pagePathArray[1];
         }
+        String resPagePath = extraConfig.getResPayPagePath() + "?" + payParam;
+        log.info("回复的客服消息pagePath：" + resPagePath);
         WxSendMessageReq messageReq = WxSendMessageReq.mini(req.getFromUserName(), extraConfig.getPayTitle(),
-                extraConfig.getResPayPagePath() + "?" + payParam, extraConfig.getPayThumbMediaId());
+                resPagePath, extraConfig.getPayThumbMediaId());
         // 发送消息
         RetryUtil.retry(() -> {
             String url = String.format(Constant.MINI_PROGRAM_SEND_MESSAGE_URL_FORMAT, config.getAccessToken());

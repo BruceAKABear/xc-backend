@@ -26,7 +26,7 @@ public class Trade extends AuditDocument {
     /**
      * 微信订单号
      */
-    @Indexed(unique = true)
+    @Indexed()
     private String transactionId;
 
     /**
