@@ -36,7 +36,7 @@ public class MiniProgramExtraConfig implements Serializable {
     private String payThumbMediaId;
 
     /**
-     * 本地保存的媒体文件(图片)id
+     * 本地保存的媒体文件(图片)url
      */
-    private String payThumbMediaLocalId;
+    private String payThumbMediaLocalUrl;
 }

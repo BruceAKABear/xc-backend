@@ -1,6 +1,7 @@
 package net.zacard.xc.common.biz.service;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.io.ByteStreams;
 import lombok.extern.slf4j.Slf4j;
 import net.zacard.xc.common.biz.entity.AccessTokenRes;
 import net.zacard.xc.common.biz.entity.Channel;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -158,11 +160,38 @@ public class MiniprogramService {
             throw BusinessException.withMessage("小程序的id不能为空");
         }
         if (miniProgramConfig.getExtraConfig() == null || StringUtils.isBlank(
-                miniProgramConfig.getExtraConfig().getReqPayPagePath())) {
+                miniProgramConfig.getExtraConfig().getResPayPagePath())) {
             MiniProgramConfig one = miniProgramConfigRepository.findOne(miniProgramConfig.getId());
             miniProgramConfig.setExtraConfig(one.getExtraConfig());
         }
         miniProgramConfigRepository.save(miniProgramConfig);
+    }
+
+    public String refreshPayMedia(MiniProgramConfig miniProgramConfig) {
+        MiniProgramExtraConfig extraConfig = miniProgramConfig.getExtraConfig();
+        if (extraConfig == null) {
+            throw BusinessException.withMessage("小程序附加信息未配置");
+        }
+        String mediaLocalUrl = extraConfig.getPayThumbMediaLocalUrl();
+        if (StringUtils.isBlank(mediaLocalUrl)) {
+            throw BusinessException.withMessage("小程序附加信息的支付资源文件未上传");
+        }
+        // https://xichengame.net/xc/website/upload/image/xxx")
+        InputStream inputStream = HttpUtil.downFile(mediaLocalUrl);
+        String filename = mediaLocalUrl.substring(mediaLocalUrl.lastIndexOf("/") + 1);
+        try {
+            String payMediaId = uploadMedia(miniProgramConfig.getAccessToken(), filename,
+                    ByteStreams.toByteArray(inputStream));
+            // 更新附加配置
+            MiniProgramConfig config = miniProgramConfigRepository.findOne(miniProgramConfig.getId());
+            MiniProgramExtraConfig miniProgramExtraConfig = config.getExtraConfig();
+            miniProgramExtraConfig.setPayThumbMediaId(payMediaId);
+            config.setExtraConfig(miniProgramExtraConfig);
+            miniProgramConfigRepository.save(config);
+            return payMediaId;
+        } catch (Exception e) {
+            throw ExceptionUtil.unchecked(e);
+        }
     }
 
     /**
@@ -171,12 +200,29 @@ public class MiniprogramService {
      * @return media_id
      */
     public String uploadMedia(String accessToken, MultipartFile file) {
+        try {
+            return uploadMedia(accessToken, file.getOriginalFilename(), file.getBytes());
+        } catch (Exception e) {
+            throw ExceptionUtil.unchecked(e);
+        }
+    }
+
+    private String uploadMedia(String accessToken, String fileName, byte[] bytes) {
         String url = String.format(Constant.MINI_PROGRAM_UPLOAD_MEDIA_URL_FORMAT, accessToken, "image");
         try {
-            String json = HttpUtil.uploadFile(url, file.getOriginalFilename(), "media", file.getBytes());
+            String json = HttpUtil.uploadFile(url, fileName, "media", bytes);
             MediaUploadRes mediaUploadRes = JSON.parseObject(json, MediaUploadRes.class);
-            if (Integer.valueOf(40004).equals(mediaUploadRes.getErrcode())) {
+            Integer errcode = mediaUploadRes.getErrcode();
+            if (Integer.valueOf(40004).equals(errcode)) {
                 throw BusinessException.withMessage("无效媒体文件类型");
+            }
+            // access_token过期
+            if (Integer.valueOf(42001).equals(errcode)) {
+                throw BusinessException.withMessage("access_token过期");
+            }
+            if (errcode != null && StringUtils.isNotBlank(mediaUploadRes.getErrmsg())) {
+                throw BusinessException.withMessage(
+                        "上传媒体资源异常。errorcode:" + errcode + ",errormsg:" + mediaUploadRes.getErrmsg());
             }
             return mediaUploadRes.getMedia_id();
         } catch (Exception e) {

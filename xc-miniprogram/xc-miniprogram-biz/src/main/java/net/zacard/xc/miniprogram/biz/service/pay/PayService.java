@@ -38,6 +38,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,11 +78,18 @@ public class PayService {
             // userToken失效或者不合法
             throw BusinessException.withMessage("用户未登录");
         }
+        String itemName = prepareOrderReq.getItemName();
+        try {
+            // 尝试解码一下
+            itemName = URLDecoder.decode(itemName, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            log.warn("商品名称url decode失败", e);
+        }
         // 根据appId获取小程序app配置
         String appId = userAccessLog.getAppId();
         MiniProgramConfig config = miniProgramConfigRepository.findByAppId(appId);
         // 构建统一下单req
-        UnifiedOrderReq req = UnifiedOrderReq.buildForMiniProgram(config, prepareOrderReq.getItemName(),
+        UnifiedOrderReq req = UnifiedOrderReq.buildForMiniProgram(config, itemName,
                 prepareOrderReq.getPrice(), userAccessLog.getOpenid());
         // 将req入库
         UnifiedOrder unifiedOrder = new UnifiedOrder();

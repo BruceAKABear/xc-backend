@@ -88,10 +88,10 @@ public class MessageService {
         }
         String resPagePath = extraConfig.getResPayPagePath() + "?" + payParam;
         log.info("回复的客服消息pagePath：" + resPagePath);
-        WxSendMessageReq messageReq = WxSendMessageReq.mini(req.getFromUserName(), extraConfig.getPayTitle(),
-                resPagePath, extraConfig.getPayThumbMediaId());
         // 发送消息
         RetryUtil.retry(() -> {
+            WxSendMessageReq messageReq = WxSendMessageReq.mini(req.getFromUserName(), extraConfig.getPayTitle(),
+                    resPagePath, extraConfig.getPayThumbMediaId());
             String url = String.format(Constant.MINI_PROGRAM_SEND_MESSAGE_URL_FORMAT, config.getAccessToken());
 //        WxSendMessageReq wxSendMessageReq = WxSendMessageReq.text(req.getFromUserName(), "您好");
             WxSendMessageRes res = HttpUtil.post(url, messageReq, WxSendMessageRes.class);
@@ -99,11 +99,19 @@ public class MessageService {
                 throw BusinessException.withMessage("回复消息失败(appId:" + appId + ")");
             }
             if (res.getErrcode() != 0) {
-                // 这里应该是accessToken过期了，强制刷新
-                MiniProgramConfig tmp = miniprogramService.refreshAccessToken(appId, true);
-                config.setAccessToken(tmp.getAccessToken());
+                String errmsg = res.getErrmsg();
+                if (errmsg.contains("access_token")) {
+                    // accessToken过期了，强制刷新
+                    MiniProgramConfig tmp = miniprogramService.refreshAccessToken(appId, true);
+                    config.setAccessToken(tmp.getAccessToken());
+                }
+                if (errmsg.contains("thumb") || errmsg.contains("media")) {
+                    // 客服消息的图片资源文件过期，刷新资源文件
+                    String payMediaId = miniprogramService.refreshPayMedia(config);
+                    extraConfig.setPayThumbMediaId(payMediaId);
+                }
                 throw BusinessException.withMessage(
-                        "回复消息失败(appid:" + appId + "errcode:" + res.getErrcode() + ";errmsg:" + res.getErrmsg() + ")");
+                        "回复消息失败(appid:" + appId + "errcode:" + res.getErrcode() + ";errmsg:" + errmsg + ")");
             }
         });
     }

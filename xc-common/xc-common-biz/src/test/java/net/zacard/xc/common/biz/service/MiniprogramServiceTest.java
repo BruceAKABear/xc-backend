@@ -3,9 +3,11 @@ package net.zacard.xc.common.biz.service;
 import com.google.common.io.Files;
 import net.zacard.xc.common.biz.entity.MiniProgramConfig;
 import net.zacard.xc.common.biz.entity.MiniProgramExtraConfig;
+import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
 import net.zacard.xc.common.biz.util.Constant;
 import net.zacard.xc.common.biz.util.HttpUtil;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +27,9 @@ public class MiniprogramServiceTest {
 
     @Autowired
     private MiniprogramService miniprogramService;
+
+    @Autowired
+    private MiniProgramConfigRepository miniProgramConfigRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -73,5 +78,37 @@ public class MiniprogramServiceTest {
         File file = new File("/Users/guoqw/myprojects/xc/doc/xz-mini/hb.jpeg");
         String json = HttpUtil.uploadFile(url, "hb.jpeg", "media", Files.toByteArray(file));
         System.out.println("json:" + json);
+    }
+
+    @Test
+    public void refreshAccessTokenAndSave() {
+        String appid = "wx0e63bb140eabbcab";
+        MiniProgramConfig config = miniProgramConfigRepository.findByAppId(appid);
+        String oldAccessToken = config.getAccessToken();
+        System.out.println("old access_token:" + oldAccessToken);
+        config = miniprogramService.refreshAccessTokenAndSave(config, true);
+        String newAccessToken = config.getAccessToken();
+        System.out.println("new access_token:" + newAccessToken);
+        Assert.assertNotEquals(oldAccessToken, newAccessToken);
+    }
+
+    @Test
+    public void updateAccessToken() {
+    }
+
+    @Test
+    public void refreshPayMedia() {
+        String appid = "wx0e63bb140eabbcab";
+        MiniProgramConfig config = miniProgramConfigRepository.findByAppId(appid);
+//        config.getExtraConfig().setPayThumbMediaLocalUrl(DOMAIN+"/xc/website/upload/image/hb.jpeg");
+//        miniprogramService.update(config);
+        String mediaId = miniprogramService.refreshPayMedia(config);
+        System.out.println("mediaId:" + mediaId);
+        config = miniProgramConfigRepository.findByAppId(appid);
+        Assert.assertEquals(mediaId, config.getExtraConfig().getPayThumbMediaId());
+    }
+
+    @Test
+    public void get() {
     }
 }

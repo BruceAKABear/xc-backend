@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 /**
- * @author guoqw
+ * @author guoqtw
  * @since 2020-06-05 14:17
  */
 public class Constant {
@@ -15,7 +15,7 @@ public class Constant {
 
     public static final String TRADE_START_TIME_FORMAT = "yyyyMMddHHmmss";
 
-    public static final String NOTIFY_URL = "http://www.xichengame.com/api/pay/wx/callback";
+    public static final String NOTIFY_URL = "https://xichengame.net/api/pay/wx/callback";
 
     public static final String TRADE_TYPE_MINI_PROGRAM = "JSAPI";
 
