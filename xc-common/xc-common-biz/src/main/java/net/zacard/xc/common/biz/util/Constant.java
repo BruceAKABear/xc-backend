@@ -15,7 +15,7 @@ public class Constant {
 
     public static final String TRADE_START_TIME_FORMAT = "yyyyMMddHHmmss";
 
-    public static final String NOTIFY_URL = "https://xichengame.net/api/pay/wx/callback";
+    public static final String NOTIFY_URL = "https://xichengame.net/xc/mini/api/pay/wx/callback";
 
     public static final String TRADE_TYPE_MINI_PROGRAM = "JSAPI";
 
