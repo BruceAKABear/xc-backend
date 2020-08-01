@@ -50,7 +50,7 @@ public class ApiController {
             consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE},
             produces = MediaType.APPLICATION_XML_VALUE)
     public PayCallbackRes payCallback(@RequestBody PayCallbackReq payCallbackReq) {
-        log.info("收到回调，payCallbackReq：" + JSON.toJSONString(payCallbackReq, true));
+//        log.info("收到回调，payCallbackReq：" + JSON.toJSONString(payCallbackReq, true));
         // 参数校验
         String returnCode = payCallbackReq.getReturnCode();
         String message = null;

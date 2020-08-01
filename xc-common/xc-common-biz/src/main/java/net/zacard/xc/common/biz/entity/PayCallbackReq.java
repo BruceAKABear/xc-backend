@@ -134,13 +134,13 @@ public class PayCallbackReq extends WxCommonSign {
      * 代金券金额<=订单金额，订单金额-代金券金额=现金支付金额
      */
     @JacksonXmlProperty(localName = "coupon_fee")
-    private int couponFee;
+    private Integer couponFee;
 
     /**
      * 代金券使用数量
      */
     @JacksonXmlProperty(localName = "coupon_count")
-    private int couponCount;
+    private Integer couponCount;
 
     /**
      * CASH--充值代金券

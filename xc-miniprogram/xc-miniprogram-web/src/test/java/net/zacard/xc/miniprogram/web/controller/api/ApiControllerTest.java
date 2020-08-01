@@ -34,6 +34,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -80,34 +81,36 @@ public class ApiControllerTest {
 
     @Test
     public void payCallback() throws Exception {
-        PayCallbackReq req = new PayCallbackReq();
-        req.setReturnCode("SUCCESS");
-        req.setResultCode("SUCCESS");
-        req.setAppId("wx0e63bb140eabbcab");
-        req.setMchId("1597282921");
-        req.setNonceStr(RandomStringUtil.getRandomUpperString());
-        req.setResultCode("SUCCESS");
-        req.setOpenid("oFtQw5YlC2hYGE2W_DrtridM9jZk");
-        req.setIsSubscribe("Y");
-        req.setTradeType("JSAPI");
-        req.setBankType("CMC");
-        req.setTotalFee(100);
-        req.setCashFee(0);
-        req.setTransactionId("abc");
-        req.setOutTradeNo("202006121346458161902010011");
-        req.setTimeEnd("20200611131756");
+//        PayCallbackReq req = new PayCallbackReq();
+//        req.setReturnCode("SUCCESS");
+//        req.setResultCode("SUCCESS");
+//        req.setAppId("wx0e63bb140eabbcab");
+//        req.setMchId("1597282921");
+//        req.setNonceStr(RandomStringUtil.getRandomUpperString());
+//        req.setResultCode("SUCCESS");
+//        req.setOpenid("oFtQw5YlC2hYGE2W_DrtridM9jZk");
+//        req.setIsSubscribe("Y");
+//        req.setTradeType("JSAPI");
+//        req.setBankType("CMC");
+//        req.setTotalFee(100);
+//        req.setCashFee(0);
+//        req.setTransactionId("abc");
+//        req.setOutTradeNo("202006121346458161902010011");
+//        req.setTimeEnd("20200611131756");
 
         // 生成签名
-        Map<String, String> signMap = ObjectUtil.objectToMapNonNull(req);
-        MiniProgramConfig config = miniProgramConfigRepository.findByAppId(req.getAppId());
-        req.setSign(EncryptUtil.wxPaySign(signMap, config.getKey(), true));
-        System.out.println("sign:" + req.getSign());
+//        Map<String, String> signMap = ObjectUtil.objectToMapNonNull(req);
+//        MiniProgramConfig config = miniProgramConfigRepository.findByAppId(req.getAppId());
+//        req.setSign(EncryptUtil.wxPaySign(signMap, config.getKey(), true));
+//        System.out.println("sign:" + req.getSign());
+
+        String xml = "<xml><appid><![CDATA[wx0e63bb140eabbcab]]></appid><bank_type><![CDATA[GDB_CREDIT]]></bank_type><cash_fee><![CDATA[600]]></cash_fee><device_info><![CDATA[MINI-PROGRAM]]></device_info><fee_type><![CDATA[CNY]]></fee_type><is_subscribe><![CDATA[N]]></is_subscribe><mch_id><![CDATA[1597282921]]></mch_id><nonce_str><![CDATA[87CA760B0CAA4427A31E97D75B181E7F]]></nonce_str><openid><![CDATA[oFtQw5QcTAlsbd_rmQ79AI9w-fVk]]></openid><out_trade_no><![CDATA[202008011416528790000140000]]></out_trade_no><result_code><![CDATA[SUCCESS]]></result_code><return_code><![CDATA[SUCCESS]]></return_code><sign><![CDATA[AFFFF274F507B410E74202B32F581187]]></sign><time_end><![CDATA[20200801141739]]></time_end><total_fee>600</total_fee><trade_type><![CDATA[JSAPI]]></trade_type><transaction_id><![CDATA[4200000722202008014770877876]]></transaction_id></xml>";
 
         // req转成xml
-        String xmlStr = xmlMapper.writeValueAsString(req);
+//        String xmlStr = xmlMapper.writeValueAsString(req);
 
         MvcResult result = restMockMvc.perform(post("/api/pay/wx/callback")
-                .content(xmlStr)
+                .content(xml)
                 .contentType(MediaType.APPLICATION_XML))
                 .andExpect(status().isOk())
 //                .andExpect(jsonPath("$.code").value("1"))
@@ -118,7 +121,7 @@ public class ApiControllerTest {
         System.out.println("response:" + JSON.toJSONString(res, true));
 
         // 这里测试是否有收到4次回调
-//        TimeUnit.SECONDS.sleep(80);
+        TimeUnit.SECONDS.sleep(80);
     }
 
     @Test
