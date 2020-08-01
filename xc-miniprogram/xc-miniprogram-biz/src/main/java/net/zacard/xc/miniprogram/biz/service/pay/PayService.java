@@ -164,7 +164,7 @@ public class PayService {
             prepareOrderRes.setPackageStr("prepay_id=" + unifiedOrder.getRes().getPrepayId());
             signMap.put("package", prepareOrderRes.getPackageStr());
             // 预付单参数签名
-            prepareOrderRes.setPaySign(EncryptUtil.wxPaySign(signMap, config.getKey()));
+            prepareOrderRes.setPaySign(EncryptUtil.wxPaySign(signMap, config.getKey(), false));
             return prepareOrderRes;
         } catch (Exception e) {
             log.error("发起wx统一下单异常", e);
@@ -401,7 +401,7 @@ public class PayService {
         }
         // 生成签名
         Channel channel = channelRepository.findOne(channelId);
-        res.setSign(EncryptUtil.wxPaySign(res, channel.getAppSecret()));
+        res.setSign(EncryptUtil.wxPaySign(res, channel.getAppSecret(), false));
         return res;
     }
 }

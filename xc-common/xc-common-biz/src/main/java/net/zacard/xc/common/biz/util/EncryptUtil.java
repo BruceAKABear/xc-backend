@@ -60,6 +60,12 @@ public class EncryptUtil {
                 convertMap.put(CONVERTER.convert(entry.getKey()), entry.getValue());
             }
             signMap = convertMap;
+
+            // 将app_id统一替换成appid
+            if (signMap.containsKey("app_id")) {
+                String value = signMap.remove("app_id");
+                signMap.put("appid", value);
+            }
         }
         return wxPaySign(signMap, secretKey);
     }
@@ -68,15 +74,6 @@ public class EncryptUtil {
      * 微信支付，对于给定字段签名
      */
     public static String wxPaySign(Map<String, String> signMap, String secretKey) {
-        // 将appId、app_id统一替换成appid
-        if (signMap.containsKey("appId")) {
-            String value = signMap.remove("appId");
-            signMap.put("appid", value);
-        }
-        if (signMap.containsKey("app_id")) {
-            String value = signMap.remove("app_id");
-            signMap.put("appid", value);
-        }
         List<String> keys = new ArrayList<>(signMap.keySet());
         // key排序
         Collections.sort(keys);

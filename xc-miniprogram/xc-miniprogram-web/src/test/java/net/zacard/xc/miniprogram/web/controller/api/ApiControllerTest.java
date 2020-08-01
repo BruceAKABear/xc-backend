@@ -120,6 +120,7 @@ public class ApiControllerTest {
 
     @Test
     public void payQuery() {
+        // TODO
     }
 
     @Test
@@ -208,4 +209,5 @@ public class ApiControllerTest {
     @Test
     public void wxMessageCheck() {
     }
+
 }
