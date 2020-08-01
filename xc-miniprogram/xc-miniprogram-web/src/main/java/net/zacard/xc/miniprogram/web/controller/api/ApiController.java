@@ -49,6 +49,7 @@ public class ApiController {
             consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE},
             produces = MediaType.APPLICATION_XML_VALUE)
     public PayCallbackRes payCallback(@RequestBody PayCallbackReq payCallbackReq) {
+        log.info("收到回调，payCallbackReq：" + payCallbackReq);
         // 参数校验
         String returnCode = payCallbackReq.getReturnCode();
         String message = null;
@@ -60,6 +61,7 @@ public class ApiController {
         String validateMessage = ValidateUtils.validateParamsProperty(payCallbackReq);
         if (validateMessage != null) {
             message = validateMessage;
+            log.info("参数校验不通过：" + validateMessage);
             return PayCallbackRes.fail(message);
         }
         // 回调处理
