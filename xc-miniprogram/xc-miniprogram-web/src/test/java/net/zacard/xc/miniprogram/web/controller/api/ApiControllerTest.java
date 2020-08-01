@@ -9,6 +9,7 @@ import net.zacard.xc.common.biz.entity.PayCallbackReq;
 import net.zacard.xc.common.biz.entity.PayCallbackRes;
 import net.zacard.xc.common.biz.entity.UserAccessLog;
 import net.zacard.xc.common.biz.entity.WxMessageReq;
+import net.zacard.xc.common.biz.infra.filter.AccessLogFilter;
 import net.zacard.xc.common.biz.infra.web.Session;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
 import net.zacard.xc.common.biz.repository.UserAccessLogRepository;
@@ -26,13 +27,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -46,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
+@WebAppConfiguration
 public class ApiControllerTest {
 
     private MockMvc restMockMvc;
@@ -64,6 +66,7 @@ public class ApiControllerTest {
     @Before
     public void setUp() throws Exception {
         this.restMockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
+                .addFilter(new AccessLogFilter())
                 .alwaysDo(print())
                 .build();
 
@@ -115,7 +118,7 @@ public class ApiControllerTest {
         System.out.println("response:" + JSON.toJSONString(res, true));
 
         // 这里测试是否有收到4次回调
-        TimeUnit.SECONDS.sleep(80);
+//        TimeUnit.SECONDS.sleep(80);
     }
 
     @Test

@@ -67,6 +67,11 @@
         </encoder>
     </appender>
 
+    <logger name="net.zacard.xc.common.biz.infra.filter.AccessLogFilter" level="info" additivity="false">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file-access-log-sys"/>
+    </logger>
+
     <logger name="net.zacard" level="info" additivity="false">
         <appender-ref ref="console"/>
         <appender-ref ref="file-biz"/>

@@ -1,8 +1,9 @@
 package net.zacard.xc.common.biz.infra.web;
 
+import net.zacard.xc.common.biz.infra.filter.AccessLogFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
@@ -35,5 +36,15 @@ public class WebAutoConfig {
     @Bean
     public SystemController systemController() {
         return new SystemController();
+    }
+
+    @Bean
+    public FilterRegistrationBean accessLogFilterRegistration() {
+        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
+        //定义过滤器顺序
+        filterRegistrationBean.setOrder(0);
+        filterRegistrationBean.setFilter(new AccessLogFilter());
+        filterRegistrationBean.setName("accessLogFilter");
+        return filterRegistrationBean;
     }
 }
