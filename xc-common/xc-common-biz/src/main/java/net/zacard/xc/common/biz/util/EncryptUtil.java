@@ -1,5 +1,7 @@
 package net.zacard.xc.common.biz.util;
 
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Converter;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,6 +12,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,15 +30,37 @@ public class EncryptUtil {
     private static final String DEFAULT_SECRET_KEY = "XC2020CX0202SSSS";
 
     /**
+     * 驼峰转下划线
+     */
+    private static final Converter<String, String> CONVERTER = CaseFormat.LOWER_CAMEL.converterTo(
+            CaseFormat.LOWER_UNDERSCORE);
+
+    /**
      * 微信支付，对于给定字段签名
      *
      * @param target    对象必须都是基本类型、基本类型包装类、String
      * @param secretKey 私钥
      */
     public static String wxPaySign(Object target, String secretKey) {
+        return wxPaySign(target, secretKey, true);
+    }
+
+    public static String wxPaySign(Object target, String secretKey, boolean needConvert) {
         Map<String, String> signMap = ObjectUtil.objectToMapNonNull(target);
+        return wxPaySign(signMap, secretKey, needConvert);
+    }
+
+    public static String wxPaySign(Map<String, String> signMap, String secretKey, boolean needConvert) {
         // 去除sign字段(sign本身不参与签名)
         signMap.remove("sign");
+        // 把key从驼峰转为下划线
+        if (needConvert) {
+            Map<String, String> convertMap = new HashMap<>(signMap.size());
+            for (Map.Entry<String, String> entry : signMap.entrySet()) {
+                convertMap.put(CONVERTER.convert(entry.getKey()), entry.getValue());
+            }
+            signMap = convertMap;
+        }
         return wxPaySign(signMap, secretKey);
     }
 
@@ -43,6 +68,15 @@ public class EncryptUtil {
      * 微信支付，对于给定字段签名
      */
     public static String wxPaySign(Map<String, String> signMap, String secretKey) {
+        // 将appId、app_id统一替换成appid
+        if (signMap.containsKey("appId")) {
+            String value = signMap.remove("appId");
+            signMap.put("appid", value);
+        }
+        if (signMap.containsKey("app_id")) {
+            String value = signMap.remove("app_id");
+            signMap.put("appid", value);
+        }
         List<String> keys = new ArrayList<>(signMap.keySet());
         // key排序
         Collections.sort(keys);

@@ -48,6 +48,6 @@ public class ChannelCallbackReq implements Serializable {
     }
 
     public void createSign(String appSecret) {
-        this.setSign(EncryptUtil.wxPaySign(this, appSecret));
+        this.setSign(EncryptUtil.wxPaySign(this, appSecret, false));
     }
 }

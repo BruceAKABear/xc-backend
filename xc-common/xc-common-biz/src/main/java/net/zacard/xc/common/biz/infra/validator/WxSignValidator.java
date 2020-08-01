@@ -41,7 +41,7 @@ public class WxSignValidator implements ConstraintValidator<WxSign, WxCommonSign
         }
         // 查询appSecret
         MiniProgramConfig config = MpConfigHolder.get(value.getAppId());
-        String innerSign = EncryptUtil.wxPaySign(value, config.getKey());
+        String innerSign = EncryptUtil.wxPaySign(value, config.getKey(), true);
         return innerSign.equals(sign);
     }
 

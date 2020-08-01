@@ -144,6 +144,7 @@ public class PayService {
             trade.setOpenid(userAccessLog.getOpenid());
             trade.setUserId(userAccessLog.getUserId());
             trade.setUserToken(userAccessLog.getUserToken());
+            trade.setHasSendCallback(Boolean.FALSE);
             tradeRepository.save(trade);
             // 返回支付必要参数
             Map<String, String> signMap = new HashMap<>();
@@ -192,7 +193,7 @@ public class PayService {
         // 订单已经支付成功
         if (Constant.CODE_SUCCESS.equals(trade.getTradeState())) {
             // 没有发送过回调
-            if (Boolean.FALSE.equals(trade.getHasSendCallback())) {
+            if (trade.getHasSendCallback() == null || Boolean.FALSE.equals(trade.getHasSendCallback())) {
                 trade.setHasSendCallback(Boolean.TRUE);
                 tradeRepository.save(trade);
                 sendCallback(trade);
@@ -207,7 +208,7 @@ public class PayService {
             // 支付成功的情况
             if (Constant.CODE_SUCCESS.equals(trade.getTradeState())) {
                 // 没有发送过回调
-                if (Boolean.FALSE.equals(trade.getHasSendCallback())) {
+                if (trade.getHasSendCallback() == null || Boolean.FALSE.equals(trade.getHasSendCallback())) {
                     trade.setHasSendCallback(Boolean.TRUE);
                     tradeRepository.save(trade);
                     sendCallback(trade);
@@ -303,6 +304,12 @@ public class PayService {
         }
         // 订单的交易状态已经被更新为支付成功，直接返回
         if (Constant.CODE_SUCCESS.equals(trade.getTradeState())) {
+            // 没有发送过回调
+            if (trade.getHasSendCallback() == null || Boolean.FALSE.equals(trade.getHasSendCallback())) {
+                trade.setHasSendCallback(Boolean.TRUE);
+                tradeRepository.save(trade);
+                sendCallback(trade);
+            }
             return trade;
         }
         // 构建查询订单的req
@@ -356,6 +363,12 @@ public class PayService {
             String timeEnd = res.getTimeEnd();
             DateTime dateTime = DateTimeFormat.forPattern(Constant.TRADE_START_TIME_FORMAT).parseDateTime(timeEnd);
             trade.setEndTime(dateTime.toDate());
+            // 没有发送过回调
+            if (trade.getHasSendCallback() == null || Boolean.FALSE.equals(trade.getHasSendCallback())) {
+                trade.setHasSendCallback(Boolean.TRUE);
+                tradeRepository.save(trade);
+                sendCallback(trade);
+            }
         }
         tradeRepository.save(trade);
         return trade;

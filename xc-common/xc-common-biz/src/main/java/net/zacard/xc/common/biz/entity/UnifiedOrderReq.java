@@ -252,7 +252,7 @@ public class UnifiedOrderReq implements Serializable {
         } catch (JsonProcessingException e) {
             log.error("统一下单req转为xml报错", e);
         }
-//        log.info("xml:" + xml);
+//        log.info("统一下单的请求xml:" + xml);
         return xml;
     }
 

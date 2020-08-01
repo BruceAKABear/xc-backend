@@ -85,7 +85,7 @@ public class ApiControllerTest {
         req.setNonceStr(RandomStringUtil.getRandomUpperString());
         req.setResultCode("SUCCESS");
         req.setOpenid("oFtQw5YlC2hYGE2W_DrtridM9jZk");
-        req.setSubscribe("Y");
+        req.setIsSubscribe("Y");
         req.setTradeType("JSAPI");
         req.setBankType("CMC");
         req.setTotalFee(100);
@@ -97,7 +97,7 @@ public class ApiControllerTest {
         // 生成签名
         Map<String, String> signMap = ObjectUtil.objectToMapNonNull(req);
         MiniProgramConfig config = miniProgramConfigRepository.findByAppId(req.getAppId());
-        req.setSign(EncryptUtil.wxPaySign(signMap, config.getKey()));
+        req.setSign(EncryptUtil.wxPaySign(signMap, config.getKey(), true));
         System.out.println("sign:" + req.getSign());
 
         // req转成xml
@@ -193,7 +193,7 @@ public class ApiControllerTest {
         roleInfoDto.setSign("24D11FD04824C5FD4E0448892AAE0BC8");
 
         UserAccessLog userAccessLog = userAccessLogRepository.findByUserToken(userToken);
-        Session.create(userToken,userAccessLog);
+        Session.create(userToken, userAccessLog);
 
         MvcResult result = restMockMvc.perform(post("/api/game/role/info")
                 .content(JSON.toJSONBytes(roleInfoDto))

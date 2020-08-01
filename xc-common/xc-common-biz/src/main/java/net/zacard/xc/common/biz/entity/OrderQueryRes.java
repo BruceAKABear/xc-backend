@@ -30,7 +30,7 @@ public class OrderQueryRes extends WxCommonRes {
     @NotBlank(message = "is_subscribe不能为空")
     @JacksonXmlCData
     @JacksonXmlProperty(localName = "is_subscribe")
-    private String subscribe;
+    private String isSubscribe;
 
     /**
      * 交易类型，取值为：JSAPI，NATIVE，APP等
@@ -107,13 +107,13 @@ public class OrderQueryRes extends WxCommonRes {
      * 代金券金额<=订单金额，订单金额-代金券金额=现金支付金额
      */
     @JacksonXmlProperty(localName = "coupon_fee")
-    private int couponFee;
+    private Integer couponFee;
 
     /**
      * 代金券使用数量
      */
     @JacksonXmlProperty(localName = "coupon_count")
-    private int couponCount;
+    private Integer couponCount;
 
     /**
      * CASH--充值代金券
@@ -170,4 +170,11 @@ public class OrderQueryRes extends WxCommonRes {
     @JacksonXmlCData
     @JacksonXmlProperty(localName = "time_end")
     private String timeEnd;
+
+    /**
+     * 交易状态描述:对当前查询订单状态的描述和下一步操作的指引
+     */
+    @JacksonXmlCData
+    @JacksonXmlProperty(localName = "trade_state_desc")
+    private String tradeStateDesc;
 }

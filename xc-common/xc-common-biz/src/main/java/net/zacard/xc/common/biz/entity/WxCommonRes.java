@@ -43,11 +43,11 @@ public class WxCommonRes extends WxCommonSign {
     private String nonceStr;
 
 
-    /**
-     * 签名
-     */
-    @JacksonXmlCData
-    private String sign;
+//    /**
+//     * 签名
+//     */
+//    @JacksonXmlCData
+//    private String sign;
 
     /**
      * 业务结果:SUCCESS/FAIL

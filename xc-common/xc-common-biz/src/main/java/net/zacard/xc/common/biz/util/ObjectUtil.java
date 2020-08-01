@@ -36,7 +36,7 @@ public class ObjectUtil {
                     }
                     field.setAccessible(true);
                     Object fieldValue = field.get(obj);
-                    if (fieldValue == null) {
+                    if (fieldValue == null || fieldValue.toString().isEmpty()) {
                         continue;
                     }
                     map.put(field.getName(), fieldValue.toString());

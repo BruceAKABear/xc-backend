@@ -78,7 +78,7 @@ public class PayCallbackReq extends WxCommonSign {
     @NotBlank(message = "is_subscribe不能为空")
     @JacksonXmlCData
     @JacksonXmlProperty(localName = "is_subscribe")
-    private String subscribe;
+    private String isSubscribe;
 
     /**
      * 交易类型，取值为：JSAPI，NATIVE，APP等
