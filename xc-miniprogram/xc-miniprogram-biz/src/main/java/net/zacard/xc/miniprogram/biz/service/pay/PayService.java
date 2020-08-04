@@ -19,6 +19,7 @@ import net.zacard.xc.common.biz.infra.exception.BusinessException;
 import net.zacard.xc.common.biz.infra.web.Session;
 import net.zacard.xc.common.biz.repository.ChannelRepository;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
+import net.zacard.xc.common.biz.repository.TradeCustomizedRepository;
 import net.zacard.xc.common.biz.repository.TradeRepository;
 import net.zacard.xc.common.biz.repository.UnifiedOrderRepository;
 import net.zacard.xc.common.biz.util.Constant;
@@ -28,21 +29,29 @@ import net.zacard.xc.common.biz.util.HttpUtil;
 import net.zacard.xc.common.biz.util.RandomStringUtil;
 import net.zacard.xc.common.biz.util.ValidateUtils;
 import net.zacard.xc.common.biz.util.XmlUtil;
+import net.zacard.xc.miniprogram.biz.util.DLockUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -67,7 +76,26 @@ public class PayService {
     private TradeRepository tradeRepository;
 
     @Autowired
+    private TradeCustomizedRepository tradeCustomizedRepository;
+
+    @Autowired
     private ChannelRepository channelRepository;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private ApplicationEventPublisher publisher;
+
+    private static final String TRADE_UNIQ_PROCESS_KEY_PREFIX = "trade-process-";
+
+    private static final String TRADE_CALLBACK_KEY_PREFIX = "trade-callback-";
+
+    private static final String TRADE_STATE_UPDATE_KEY_PREFIX = "trade-state-update-";
+
+    private static final String TRADE_CALLBACK_SCHEDULE_KEY = "trade-callback-schedule";
+
+    private static final String TRADE_STATUS_CHECK_SCHEDUL_KEY = "trade-status-check-schedule";
 
     /**
      * 统一下单
@@ -188,59 +216,123 @@ public class PayService {
             throw BusinessException.withMessage(
                     "回调的订单金额(" + payCallbackReq.getTotalFee() + ")和原订单(" + trade.getId() + ")金额(" + trade.getTotalFee() + ")不一致");
         }
-        // TODO 分布式锁并发(callback和orderQuery)控制, 考虑直接使用mongodb的唯一索引来处理分布式竞争
-
         // 订单已经支付成功
         if (Constant.CODE_SUCCESS.equals(trade.getTradeState())) {
-            // 没有发送过回调
-            if (trade.getHasSendCallback() == null || Boolean.FALSE.equals(trade.getHasSendCallback())) {
-                trade.setHasSendCallback(Boolean.TRUE);
-                tradeRepository.save(trade);
-                sendCallback(trade);
-            }
             return;
         }
         // 订单已经成功(说明已经接收过回调处理了)
         if (Constant.CODE_SUCCESS.equals(trade.getStatus())) {
-            // 订单状态成功，但是订单的支付状态不是成功，主动查询一次
-            String orderId = trade.getOrderId();
-            trade = query(orderId);
-            // 支付成功的情况
-            if (Constant.CODE_SUCCESS.equals(trade.getTradeState())) {
-                // 没有发送过回调
-                if (trade.getHasSendCallback() == null || Boolean.FALSE.equals(trade.getHasSendCallback())) {
-                    trade.setHasSendCallback(Boolean.TRUE);
-                    tradeRepository.save(trade);
-                    sendCallback(trade);
-                }
-            }
             return;
         }
-        // 处理订单
-        String resultCode = payCallbackReq.getResultCode();
-        // 设置订单状态
-        trade.setStatus(resultCode);
-        // 设置微信订单号
-        trade.setTransactionId(payCallbackReq.getTransactionId());
-        if (!Constant.CODE_SUCCESS.equals(resultCode)) {
-            // 支付失败的情况
+        // 分布式锁并发控制
+        String uniqKey = TRADE_UNIQ_PROCESS_KEY_PREFIX + trade.getOrderId();
+        DLockUtil.lockWithTimeout(() -> {
+            // 处理订单
+            String resultCode = payCallbackReq.getResultCode();
+            // 设置订单状态
+            trade.setStatus(resultCode);
+            // 设置微信订单号
+            trade.setTransactionId(payCallbackReq.getTransactionId());
+            // 订单失败的情况
             trade.setErrorCode(payCallbackReq.getErrCode());
             trade.setErrorMessage(payCallbackReq.getErrCodeDes());
+            // 订单成功的情况
+            String timeEnd = payCallbackReq.getTimeEnd();
+            DateTime dateTime = DateTimeFormat.forPattern(Constant.TRADE_START_TIME_FORMAT).parseDateTime(timeEnd);
+            trade.setEndTime(dateTime.toDate());
             tradeRepository.save(trade);
-            // TODO 失败需要回调渠道方？
-            return;
-        }
-        // 订单成功的情况
-        String timeEnd = payCallbackReq.getTimeEnd();
-        DateTime dateTime = DateTimeFormat.forPattern(Constant.TRADE_START_TIME_FORMAT).parseDateTime(timeEnd);
-        trade.setEndTime(dateTime.toDate());
-        trade.setHasSendCallback(Boolean.TRUE);
-        tradeRepository.save(trade);
-        // 异步回调渠道方的支付回调接口
-        sendCallback(trade);
+
+            // 如果订单状态成功，发布更新订单交易状态事件
+            if (Constant.CODE_SUCCESS.equals(resultCode)) {
+                publisher.publishEvent(new TradeStateUpdateEvent(trade));
+            }
+        }, 5000, uniqKey);
     }
 
-    private void sendCallback(Trade trade) { // 查询渠道信息
+    /**
+     * 处理更新订单交易状态事件
+     */
+//    @Async
+    @EventListener(value = TradeStateUpdateEvent.class)
+    public void tradeStateUpdateListener(TradeStateUpdateEvent tradeStateUpdateEvent) {
+        Trade trade = tradeStateUpdateEvent.getTrade();
+        String key = TRADE_STATE_UPDATE_KEY_PREFIX + trade.getOrderId();
+        DLockUtil.lockWithTimeoutAndCatch(() -> {
+            Trade newTrade = query(trade);
+            // 如果交易状态达到终态，发送渠道的callback事件
+            if (Arrays.stream(Constant.TRADE_STATUS_FINAL_STATE)
+                    .anyMatch(state -> state.equals(newTrade.getTradeState()))) {
+                // 发送回调给渠道的事件
+                publisher.publishEvent(new SendTradeCallbackEvent(newTrade));
+            }
+        }, 3000, key);
+    }
+
+    /**
+     * 处理发送回调给渠道事件
+     */
+//    @Async
+    @EventListener(value = SendTradeCallbackEvent.class)
+    public void sendCallbackListener(SendTradeCallbackEvent sendTradeCallbackEvent) {
+        Trade trade = sendTradeCallbackEvent.getTrade();
+        if (trade.getHasSendCallback()) {
+            return;
+        }
+        String key = TRADE_CALLBACK_KEY_PREFIX + trade.getOrderId();
+        DLockUtil.lockWithTimeoutAndCatch(() -> {
+            trade.setHasSendCallback(Boolean.TRUE);
+            tradeRepository.save(trade);
+            sendCallback(trade);
+        }, 3000, key);
+    }
+
+    /**
+     * 每隔5s检查超过30秒还没有达到终态的trade的订单交易状态
+     * 30分钟还未到达终态，直接设置为:CLOSE关闭
+     */
+    @Scheduled(fixedDelay = 5000)
+    public void tradeQueryTask() {
+        DLockUtil.lockWithTimeoutAndCatch(() -> {
+            // 检查是否有超过30分钟未到达终态的订单，直接关闭
+            List<Trade> exceptionTrades = tradeCustomizedRepository.findExceptionTradesWith(30 * 60 * 1000);
+            if (CollectionUtils.isNotEmpty(exceptionTrades)) {
+                for (Trade trade : exceptionTrades) {
+                    trade.setTradeState("CLOSED");
+                }
+                tradeRepository.save(exceptionTrades);
+            }
+            // 检查是否有订单超过30s还未达到终态，主动发起查询, 每次处理50笔订单
+            List<Trade> toDoTrades = tradeCustomizedRepository.findExceptionTradesWithLimit(30 * 1000, 50);
+            if (CollectionUtils.isNotEmpty(toDoTrades)) {
+                for (Trade trade : toDoTrades) {
+                    // 发布更新订单校验状态事件
+                    publisher.publishEvent(new TradeStateUpdateEvent(trade));
+                }
+            }
+        }, 3000, TRADE_STATUS_CHECK_SCHEDUL_KEY);
+    }
+
+    /**
+     * 隔5s检查是否有trade需要发送回调给渠道方
+     */
+    @Scheduled(fixedDelay = 5000)
+    public void sendCallbackTask() {
+//        log.info("开始检查是否有交易需要回调渠道方");
+        DLockUtil.lockWithTimeoutAndCatch(() -> {
+            List<Trade> trades = tradeRepository.findTop100ByTradeStateAndHasSendCallbackIsFalseOrderByCreateTimeDesc(
+                    Constant.CODE_SUCCESS);
+            if (CollectionUtils.isEmpty(trades)) {
+                return;
+            }
+            log.info("开始处理{}笔交易的回调", trades.size());
+            for (Trade trade : trades) {
+                // 发送回调给渠道的事件
+                publisher.publishEvent(new SendTradeCallbackEvent(trade));
+            }
+        }, 3000, TRADE_CALLBACK_SCHEDULE_KEY);
+    }
+
+    private void sendCallback(Trade trade) {
         Channel channel = channelRepository.findOne(trade.getChannelId());
         if (channel == null) {
             throw BusinessException.withMessage("不存在交易对应的渠道(" + trade.getChannelId() + ")");
@@ -289,27 +381,25 @@ public class PayService {
         }, "channel-pay-callback-" + Constant.INDEX.incrementAndGet()).start();
     }
 
-    /**
-     * 查询订单
-     */
     public Trade query(String orderId) {
         Trade trade = tradeRepository.findByOrderId(orderId);
         if (trade == null) {
             throw BusinessException.withMessage("不存在订单(" + orderId + ")");
         }
+        return query(trade);
+    }
+
+    /**
+     * 查询订单
+     */
+    public Trade query(Trade trade) {
         String appId = trade.getAppId();
         MiniProgramConfig config = miniProgramConfigRepository.findByAppId(appId);
         if (config == null) {
-            throw BusinessException.withMessage("不存在支付订单(" + orderId + ")对应的小程序配置(" + appId + ")");
+            throw BusinessException.withMessage("不存在支付订单(" + trade.getOrderId() + ")对应的小程序配置(" + appId + ")");
         }
-        // 订单的交易状态已经被更新为支付成功，直接返回
-        if (Constant.CODE_SUCCESS.equals(trade.getTradeState())) {
-            // 没有发送过回调
-            if (trade.getHasSendCallback() == null || Boolean.FALSE.equals(trade.getHasSendCallback())) {
-                trade.setHasSendCallback(Boolean.TRUE);
-                tradeRepository.save(trade);
-                sendCallback(trade);
-            }
+        // 如果是交易终态了，直接返回
+        if (Arrays.stream(Constant.TRADE_STATUS_FINAL_STATE).anyMatch(state -> state.equals(trade.getTradeState()))) {
             return trade;
         }
         // 构建查询订单的req
@@ -328,16 +418,14 @@ public class PayService {
         OrderQueryRes res = XmlUtil.toObj(response.getBody(), OrderQueryRes.class);
         String returnCode = res.getReturnCode();
         if (!Constant.CODE_SUCCESS.equals(returnCode)) {
-            log.warn("查询订单的return code(" + returnCode + ") is not SUCCESS");
-            // 这里直接更新，因为回调的时候没有trade state
-            tradeRepository.save(trade);
-            return trade;
+            throw BusinessException.withMessage(
+                    "查询订单的return code(" + returnCode + ") is not SUCCESS,returnMsg:" + res.getReturnMsg());
         }
         String resultCode = res.getResultCode();
         trade.setStatus(resultCode);
         if (!Constant.CODE_SUCCESS.equals(resultCode)) {
-            log.warn("查询订单的result code(" + resultCode + ") is not SUCCESS");
-            return trade;
+            throw BusinessException.withMessage("查询订单的result code(" + resultCode + ") is not SUCCESS,errorCode:"
+                    + res.getErrCode() + ",errorMsg:" + res.getErrCodeDes());
         }
         // 参数校验&验签
         String validateMessage = ValidateUtils.validateParamsProperty(res);
@@ -345,31 +433,27 @@ public class PayService {
             throw BusinessException.withMessage("参数(签名)校验未通过：" + validateMessage);
         }
         String tradeState = res.getTradeState();
-        trade.setTradeState(tradeState);
-        // 支付成功，校验订单金额&更新订单状态
+        // 交易状态未变更，直接返回
+        if (tradeState.equals(trade.getTradeState())) {
+            return trade;
+        }
+        // 支付成功，校验订单金额
         if (Constant.CODE_SUCCESS.equals(tradeState)) {
-            // 校验订单金额
             if (!res.getTotalFee().equals(trade.getTotalFee())) {
                 throw BusinessException.withMessage(
-                        "回调的订单金额(" + res.getTotalFee() + ")和原订单(" + trade.getId() + ")金额(" + trade.getTotalFee() + ")不一致");
-            }
-            // TODO 分布式锁并发(callback和orderQuery)控制, 考虑直接使用mongodb的唯一索引来处理分布式竞争
-
-            // 设置订单状态
-            trade.setStatus(resultCode);
-            // 设置微信订单号
-            trade.setTransactionId(res.getTransactionId());
-            // 设置订单完成时间
-            String timeEnd = res.getTimeEnd();
-            DateTime dateTime = DateTimeFormat.forPattern(Constant.TRADE_START_TIME_FORMAT).parseDateTime(timeEnd);
-            trade.setEndTime(dateTime.toDate());
-            // 没有发送过回调
-            if (trade.getHasSendCallback() == null || Boolean.FALSE.equals(trade.getHasSendCallback())) {
-                trade.setHasSendCallback(Boolean.TRUE);
-                tradeRepository.save(trade);
-                sendCallback(trade);
+                        "查询的订单金额(" + res.getTotalFee() + ")和原订单(" + trade.getOrderId() + ")金额(" + trade.getTotalFee() + ")不一致");
             }
         }
+        // 设置订单状态
+        trade.setStatus(resultCode);
+        // 设置订单交易状态
+        trade.setTradeState(tradeState);
+        // 设置微信订单号
+        trade.setTransactionId(res.getTransactionId());
+        // 设置订单完成时间
+        String timeEnd = res.getTimeEnd();
+        DateTime dateTime = DateTimeFormat.forPattern(Constant.TRADE_START_TIME_FORMAT).parseDateTime(timeEnd);
+        trade.setEndTime(dateTime.toDate());
         tradeRepository.save(trade);
         return trade;
     }
@@ -380,7 +464,7 @@ public class PayService {
         if (trade == null) {
             return PayQueryRes.fail("不存在渠道(" + channelId + ")的订单(" + channelOrderId + ")");
         }
-        trade = query(trade.getOrderId());
+        trade = query(trade);
         PayQueryRes res = PayQueryRes.ok();
         res.setChannelOrderId(channelOrderId);
         res.setOpenid(trade.getOpenid());
@@ -390,12 +474,10 @@ public class PayService {
             res.setTime(new DateTime(endTime).toString(Constant.TRADE_START_TIME_FORMAT));
         }
         String tradeState = trade.getTradeState();
-        if (tradeState == null) {
+        if (tradeState == null || "NOTPAY".equals(tradeState) || "USERPAYING".equals(tradeState)) {
             res.setState("NOTPAY");
         } else if (Constant.CODE_SUCCESS.equals(tradeState)) {
             res.setState(tradeState);
-        } else if ("NOTPAY".equals(tradeState) || "USERPAYING".equals(tradeState)) {
-            res.setState("NOTPAY");
         } else {
             res.setState("FAIL");
         }

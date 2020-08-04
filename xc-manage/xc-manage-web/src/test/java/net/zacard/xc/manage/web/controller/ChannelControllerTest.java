@@ -1,9 +1,9 @@
 package net.zacard.xc.manage.web.controller;
 
 import com.alibaba.fastjson.JSON;
-import net.zacard.xc.common.api.entity.StatDto;
+import net.zacard.xc.common.biz.entity.Channel;
+import net.zacard.xc.common.biz.repository.ChannelRepository;
 import net.zacard.xc.manage.web.Application;
-import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,11 +24,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * @author guoqw
- * @since 2020-07-18 17:51
+ * @since 2020-08-01 15:47
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-public class StatControllerTest {
+public class ChannelControllerTest {
+
+    @Autowired
+    private ChannelRepository channelRepository;
 
     private MockMvc restMockMvc;
 
@@ -48,14 +51,21 @@ public class StatControllerTest {
     }
 
     @Test
-    public void list() throws Exception {
-        StatDto statDto = new StatDto();
-//        statDto.setStart(DateTime.now().minusDays(2).getMillis());
-        statDto.setStart(DateTime.now().getMillis());
-        statDto.setEnd(DateTime.now().getMillis());
+    public void list() {
+    }
 
-        MvcResult result = restMockMvc.perform(post("/stat/list")
-                .content(JSON.toJSONBytes(statDto))
+    @Test
+    public void add() {
+    }
+
+    @Test
+    public void update() throws Exception {
+        String channelId = "5edb29cfb35908d4f812df9d";
+        Channel channel = channelRepository.findOne(channelId);
+        channel.setPayCallbackMethod("POST");
+
+        MvcResult result = restMockMvc.perform(post("/channel/update")
+                .content(JSON.toJSONBytes(channel))
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))

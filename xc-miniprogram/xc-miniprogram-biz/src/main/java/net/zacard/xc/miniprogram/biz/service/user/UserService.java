@@ -13,7 +13,6 @@ import net.zacard.xc.common.biz.repository.UserRepository;
 import net.zacard.xc.common.biz.util.BeanMapper;
 import net.zacard.xc.common.biz.util.Constant;
 import net.zacard.xc.common.biz.util.HttpUtil;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -62,23 +61,21 @@ public class UserService {
      * 登录
      */
     public String signIn(UserDto userDto) {
-        User user = new User();
-        BeanUtils.copyProperties(userDto, user);
-        User tmp = userRepository.findByOpenid(userDto.getOpenid());
+        User user = userRepository.findByOpenid(userDto.getOpenid());
         Boolean isNewUser = Boolean.FALSE;
-        if (tmp == null) {
-            // 用户不存在，先主动注册
+        // 用户不存在，直接注册
+        if (user == null) {
             try {
+                user = BeanMapper.map(userDto, User.class);
                 userRepository.insert(user);
                 isNewUser = Boolean.TRUE;
             } catch (Exception e) {
                 // 这里应该是重复注册，只记录日志
                 log.error("注册用户(" + userDto.getOpenid() + ")出错", e);
                 // 重新查询
-                tmp = userRepository.findByOpenid(user.getOpenid());
+                user = userRepository.findByOpenid(userDto.getOpenid());
             }
         }
-        user = tmp;
         // 登录日志
         UserAccessLog userAccessLog = UserAccessLog.signIn(user, userDto.getChannelId(), userDto.getAppId());
         userAccessLog.setNewUser(isNewUser);
@@ -86,6 +83,35 @@ public class UserService {
         userAccessLogRepository.save(userAccessLog);
         return userAccessLog.getUserToken();
     }
+
+    /**
+     * 登录
+     */
+//    public String signIn(UserDto userDto) {
+//        User user = new User();
+//        BeanUtils.copyProperties(userDto, user);
+//        User tmp = userRepository.findByOpenid(userDto.getOpenid());
+//        Boolean isNewUser = Boolean.FALSE;
+//        if (tmp == null) {
+//            // 用户不存在，先主动注册
+//            try {
+//                userRepository.insert(user);
+//                isNewUser = Boolean.TRUE;
+//            } catch (Exception e) {
+//                // 这里应该是重复注册，只记录日志
+//                log.error("注册用户(" + userDto.getOpenid() + ")出错", e);
+//                // 重新查询
+//                tmp = userRepository.findByOpenid(user.getOpenid());
+//            }
+//        }
+//        user = tmp;
+//        // 登录日志
+//        UserAccessLog userAccessLog = UserAccessLog.signIn(user, userDto.getChannelId(), userDto.getAppId());
+//        userAccessLog.setNewUser(isNewUser);
+//        // 保存登录日志
+//        userAccessLogRepository.save(userAccessLog);
+//        return userAccessLog.getUserToken();
+//    }
 
     /**
      * 登出

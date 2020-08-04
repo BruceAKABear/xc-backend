@@ -1,6 +1,5 @@
 package net.zacard.xc.miniprogram.web.controller.api;
 
-import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import net.zacard.xc.common.api.entity.Response;
 import net.zacard.xc.common.api.entity.RoleInfoDto;
@@ -101,7 +100,7 @@ public class ApiController {
         try {
             return payService.payQuery(channelId, channelOrderId);
         } catch (Exception e) {
-            log.error("查询渠道(" + channelId + ")订单(" + channelOrderId + ")失败", e);
+            log.error("查询渠道(" + channelId + ")订单(" + channelOrderId + ")失败,msg:" + e.getMessage(), e);
             return PayQueryRes.fail(e.getMessage());
         }
     }

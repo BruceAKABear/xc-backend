@@ -22,6 +22,11 @@ public class Constant {
     public static final String CODE_SUCCESS = "SUCCESS";
 
     /**
+     * 交易订单终态
+     */
+    public static final String[] TRADE_STATUS_FINAL_STATE = {"SUCCESS", "REFUND", "CLOSED", "REVOKED", "PAYERROR"};
+
+    /**
      * 统一下单地址
      */
     public static final String UNIFIED_ORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
