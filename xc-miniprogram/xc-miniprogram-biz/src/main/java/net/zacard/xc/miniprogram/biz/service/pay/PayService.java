@@ -427,12 +427,16 @@ public class PayService {
             throw BusinessException.withMessage("查询订单的result code(" + resultCode + ") is not SUCCESS,errorCode:"
                     + res.getErrCode() + ",errorMsg:" + res.getErrCodeDes());
         }
-        // 参数校验&验签
-        String validateMessage = ValidateUtils.validateParamsProperty(res);
-        if (validateMessage != null) {
-            throw BusinessException.withMessage("参数(签名)校验未通过：" + validateMessage);
-        }
+
         String tradeState = res.getTradeState();
+        // 达到终态了再参数校验&验签
+        if (Arrays.asList(Constant.TRADE_STATUS_FINAL_STATE).contains(tradeState)) {
+            String validateMessage = ValidateUtils.validateParamsProperty(res);
+            if (validateMessage != null) {
+                throw BusinessException.withMessage(
+                        "订单(orderId:" + trade.getOrderId() + ",tradeState:" + tradeState + ")参数(签名)校验未通过：" + validateMessage);
+            }
+        }
         // 交易状态未变更，直接返回
         if (tradeState.equals(trade.getTradeState())) {
             return trade;
