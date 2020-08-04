@@ -35,7 +35,11 @@ public class Session {
         Object o = HOLDER.get(userToken);
         if (o == null) {
             // 从库里加载
-            return userAccessLogRepository.findByUserToken(userToken);
+            UserAccessLog userAccessLog = userAccessLogRepository.findByUserToken(userToken);
+            if (userAccessLog != null) {
+                HOLDER.putIfAbsent(userAccessLog.getUserToken(), userAccessLog);
+            }
+            return userAccessLog;
         }
         return (UserAccessLog) o;
     }
@@ -43,7 +47,7 @@ public class Session {
     public static UserAccessLog checkedUser(String userToken) {
         UserAccessLog userAccessLog = user(userToken);
         if (userAccessLog == null) {
-            throw BusinessException.withMessage("用户会话失效");
+            throw BusinessException.withMessage("用户会话(userToken:" + userToken + ")失效");
         }
         return userAccessLog;
     }

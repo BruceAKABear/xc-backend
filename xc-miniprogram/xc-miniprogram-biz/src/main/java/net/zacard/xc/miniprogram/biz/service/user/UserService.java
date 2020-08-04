@@ -39,6 +39,8 @@ public class UserService {
     @Autowired
     private RestTemplate restTemplate;
 
+    private static final String ADD_USER_KEY_PREFIX = "add_user_";
+
     public void register(User user) {
         try {
             userRepository.save(user);

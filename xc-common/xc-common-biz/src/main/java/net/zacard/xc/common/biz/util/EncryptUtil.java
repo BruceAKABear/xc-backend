@@ -4,6 +4,9 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import net.zacard.xc.common.biz.entity.MiniProgramConfig;
+import net.zacard.xc.common.biz.entity.WxCommonSign;
+import net.zacard.xc.common.biz.infra.MpConfigHolder;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -208,6 +211,13 @@ public class EncryptUtil {
             throw ExceptionUtil.unchecked(e);
         }
         return new String(original);
+    }
+
+    public static boolean wxSignValid(WxCommonSign wxCommonSign) {
+        // 查询appSecret
+        MiniProgramConfig config = MpConfigHolder.get(wxCommonSign.getAppId());
+        String innerSign = EncryptUtil.wxPaySign(wxCommonSign, config.getKey(), true);
+        return innerSign.equals(wxCommonSign.getSign());
     }
 
 }

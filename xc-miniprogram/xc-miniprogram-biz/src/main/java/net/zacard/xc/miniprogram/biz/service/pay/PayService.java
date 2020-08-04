@@ -31,6 +31,7 @@ import net.zacard.xc.common.biz.util.ValidateUtils;
 import net.zacard.xc.common.biz.util.XmlUtil;
 import net.zacard.xc.miniprogram.biz.util.DLockUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -456,8 +457,10 @@ public class PayService {
         trade.setTransactionId(res.getTransactionId());
         // 设置订单完成时间
         String timeEnd = res.getTimeEnd();
-        DateTime dateTime = DateTimeFormat.forPattern(Constant.TRADE_START_TIME_FORMAT).parseDateTime(timeEnd);
-        trade.setEndTime(dateTime.toDate());
+        if (StringUtils.isNotBlank(timeEnd)) {
+            DateTime dateTime = DateTimeFormat.forPattern(Constant.TRADE_START_TIME_FORMAT).parseDateTime(timeEnd);
+            trade.setEndTime(dateTime.toDate());
+        }
         tradeRepository.save(trade);
         return trade;
     }
