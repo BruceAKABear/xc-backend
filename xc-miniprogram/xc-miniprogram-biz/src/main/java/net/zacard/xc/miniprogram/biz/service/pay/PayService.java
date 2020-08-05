@@ -357,7 +357,7 @@ public class PayService {
                     }
                 }
                 i++;
-                log.info("开始第{}次回调渠道({}:{})", i, channel.getName(), channel.getId());
+                log.info("订单(orderId:{})第{}次回调渠道({}:{})", trade.getOrderId(), i, channel.getName(), channel.getId());
                 if (method == null || "".equals(method) || "POST".equals(method)) {
                     // 默认使用POST回调
                     try {
@@ -367,6 +367,8 @@ public class PayService {
                                     channel.getId(), callbackResult);
                         } else {
                             // 收到渠道方的成功应答，直接退出
+                            log.info("订单(orderId:{})第{}次回调渠道({}:{})成功", trade.getOrderId(), i, channel.getName(),
+                                    channel.getId());
                             return;
                         }
                     } catch (Exception e) {
