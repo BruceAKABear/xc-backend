@@ -75,3 +75,8 @@ server:
     accesslog:
       enabled: true
       directory: /home/logs/xc-mini
+
+xc:
+  web:
+    accesslog:
+      enable: false

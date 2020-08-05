@@ -2,6 +2,7 @@ package net.zacard.xc.common.biz.infra.web;
 
 import net.zacard.xc.common.biz.infra.filter.AccessLogFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +40,7 @@ public class WebAutoConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(prefix = "xc.web.accesslog", name = "enable", matchIfMissing = true)
     public FilterRegistrationBean accessLogFilterRegistration() {
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
         //定义过滤器顺序
