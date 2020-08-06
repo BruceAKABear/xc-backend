@@ -6,6 +6,7 @@ import net.zacard.xc.common.biz.entity.MiniProgramConfig;
 import net.zacard.xc.common.biz.entity.OpenIdRes;
 import net.zacard.xc.common.biz.entity.User;
 import net.zacard.xc.common.biz.entity.UserAccessLog;
+import net.zacard.xc.common.biz.infra.exception.BusinessException;
 import net.zacard.xc.common.biz.infra.web.Session;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
 import net.zacard.xc.common.biz.repository.UserAccessLogRepository;
@@ -13,6 +14,7 @@ import net.zacard.xc.common.biz.repository.UserRepository;
 import net.zacard.xc.common.biz.util.BeanMapper;
 import net.zacard.xc.common.biz.util.Constant;
 import net.zacard.xc.common.biz.util.HttpUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -134,6 +136,9 @@ public class UserService {
      * @return
      */
     public UserDto info(String userToken) {
+        if (StringUtils.isBlank(userToken)) {
+            throw BusinessException.withMessage("userToken不能为空");
+        }
         UserAccessLog userAccessLog = Session.checkedUser(userToken);
         User user = userRepository.findByOpenid(userAccessLog.getOpenid());
         return BeanMapper.map(user, UserDto.class);

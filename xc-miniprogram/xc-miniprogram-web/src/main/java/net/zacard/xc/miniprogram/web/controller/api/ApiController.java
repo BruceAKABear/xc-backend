@@ -13,6 +13,7 @@ import net.zacard.xc.common.biz.util.ValidateUtils;
 import net.zacard.xc.miniprogram.biz.service.message.MessageService;
 import net.zacard.xc.miniprogram.biz.service.pay.PayService;
 import net.zacard.xc.miniprogram.biz.service.user.UserService;
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;

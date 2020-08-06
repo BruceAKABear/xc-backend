@@ -468,6 +468,9 @@ public class PayService {
     }
 
     public PayQueryRes payQuery(String channelId, String channelOrderId) {
+        if (StringUtils.isBlank(channelId) || StringUtils.isBlank(channelOrderId)) {
+            throw BusinessException.withMessage("channelId或者channelOrderId不能为空");
+        }
         Trade trade = tradeRepository.findByChannelIdAndChannelOrderId(channelId,
                 channelOrderId);
         if (trade == null) {

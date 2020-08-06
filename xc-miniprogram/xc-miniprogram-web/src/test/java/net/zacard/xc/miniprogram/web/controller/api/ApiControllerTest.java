@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import net.zacard.xc.common.api.entity.RoleInfoDto;
-import net.zacard.xc.common.biz.entity.MiniProgramConfig;
-import net.zacard.xc.common.biz.entity.PayCallbackReq;
 import net.zacard.xc.common.biz.entity.PayCallbackRes;
 import net.zacard.xc.common.biz.entity.UserAccessLog;
 import net.zacard.xc.common.biz.entity.WxMessageReq;
@@ -13,9 +11,6 @@ import net.zacard.xc.common.biz.infra.filter.AccessLogFilter;
 import net.zacard.xc.common.biz.infra.web.Session;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
 import net.zacard.xc.common.biz.repository.UserAccessLogRepository;
-import net.zacard.xc.common.biz.util.EncryptUtil;
-import net.zacard.xc.common.biz.util.ObjectUtil;
-import net.zacard.xc.common.biz.util.RandomStringUtil;
 import net.zacard.xc.common.biz.util.XmlUtil;
 import net.zacard.xc.miniprogram.web.Application;
 import org.junit.After;
@@ -33,7 +28,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -149,7 +143,8 @@ public class ApiControllerTest {
 
     @Test
     public void userInfo() throws Exception {
-        String userToken = "067bef6d80f54166befe3081b4519c68";
+        String userToken = "ae9d5df325fb4a97bfcc7493a6839dbe";
+//        userToken = "";
         MvcResult result = restMockMvc.perform(get("/api/user/info?userToken=" + userToken)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isOk())
