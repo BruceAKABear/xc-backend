@@ -33,10 +33,10 @@ public class PayStat implements Serializable {
     /**
      * 新增支付金额
      */
-    private double newPaySum;
+    private long newPaySum;
 
     /**
      * 总支付金额
      */
-    private double totalPaySum;
+    private long totalPaySum;
 }

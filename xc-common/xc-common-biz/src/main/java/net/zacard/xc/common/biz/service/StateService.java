@@ -1,20 +1,26 @@
 package net.zacard.xc.common.biz.service;
 
 import net.zacard.xc.common.api.entity.StatDto;
-import net.zacard.xc.common.biz.entity.RoleInfo;
-import net.zacard.xc.common.biz.entity.Trade;
+import net.zacard.xc.common.biz.entity.DataOverviewReq;
 import net.zacard.xc.common.biz.entity.UserAccessLog;
+import net.zacard.xc.common.biz.entity.stat.ArpuStat;
+import net.zacard.xc.common.biz.entity.stat.KeepStat;
 import net.zacard.xc.common.biz.entity.stat.MainStat;
 import net.zacard.xc.common.biz.entity.stat.PayStat;
+import net.zacard.xc.common.biz.entity.stat.PayStatResult;
 import net.zacard.xc.common.biz.entity.stat.RoleStat;
 import net.zacard.xc.common.biz.entity.stat.UserStat;
+import net.zacard.xc.common.biz.infra.exception.BusinessException;
+import net.zacard.xc.common.biz.repository.RoleInfoCustomizedRepository;
 import net.zacard.xc.common.biz.repository.RoleInfoRepository;
+import net.zacard.xc.common.biz.repository.TradeCustomizedRepository;
 import net.zacard.xc.common.biz.repository.TradeRepository;
+import net.zacard.xc.common.biz.repository.UserAccessLogCustomizedRepository;
 import net.zacard.xc.common.biz.repository.UserAccessLogRepository;
 import net.zacard.xc.common.biz.util.Constant;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,9 +29,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-
-import static java.util.stream.Collectors.*;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author guoqw
@@ -38,164 +43,188 @@ public class StateService {
     private UserAccessLogRepository userAccessLogRepository;
 
     @Autowired
+    private UserAccessLogCustomizedRepository userAccessLogCustomizedRepository;
+
+    @Autowired
     private RoleInfoRepository roleInfoRepository;
 
     @Autowired
+    private RoleInfoCustomizedRepository roleInfoCustomizedRepository;
+
+    @Autowired
     private TradeRepository tradeRepository;
+
+    @Autowired
+    private TradeCustomizedRepository tradeCustomizedRepository;
 
     public List<MainStat> stat(StatDto statDto) {
         String channelId = statDto.getChannelId();
         Long start = statDto.getStart();
         Long end = statDto.getEnd();
+        if (start > end) {
+            throw BusinessException.withMessage("开始时间不能大于结束时间");
+        }
         Date startDate = new DateTime(start).withTimeAtStartOfDay().toDate();
-        Date endDate = new DateTime(end).plusDays(1).withTimeAtStartOfDay().toDate();
-        // 收集日期分区
+        Date endDate = new DateTime(end).withTimeAtStartOfDay().toDate();
+
         Map<String, MainStat> ds2MainStat = new HashMap<>();
-        Date tmpDate = new DateTime(end).toDate();
-        while (tmpDate.after(startDate)) {
-            DateTime tmp = new DateTime(tmpDate);
+        while (!startDate.after(endDate)) {
+            DateTime tmp = new DateTime(endDate);
             String dateFormat = tmp.toString(Constant.DS_FORMAT);
             MainStat mainStat = new MainStat();
             mainStat.setDateFormat(dateFormat);
+            mainStat.setCurrentDate(tmp.withTimeAtStartOfDay());
             ds2MainStat.put(dateFormat, mainStat);
-            tmpDate = tmp.minusDays(1).toDate();
+            endDate = tmp.minusDays(1).toDate();
         }
 
-        // ********统计用户相关信息********
-        List<UserAccessLog> userAccessLogs = userAccessLogRepository.findDistinctOpenidByCreateTimeBetween(
-                startDate, endDate);
-        // 按照日期分组,构造出日期和用户openid(去重)集合的map
-        Map<String, List<UserAccessLog>> date2Users = userAccessLogs.stream()
-                // 根据channelId筛选
-                .filter(userAccessLog -> StringUtils.isBlank(channelId) || channelId.equals(
-                        userAccessLog.getChannelId()))
-                .collect(groupingBy(
-                        userAccessLog -> new DateTime(userAccessLog.getCreateTime()).toString(Constant.DS_FORMAT),
-                        mapping(Function.identity(), toList())));
-        for (Map.Entry<String, MainStat> statEntry : ds2MainStat.entrySet()) {
-            MainStat mainStat = statEntry.getValue();
+        DateTime now = DateTime.now().withTimeAtStartOfDay();
+
+        for (Map.Entry<String, MainStat> entry : ds2MainStat.entrySet()) {
+            MainStat mainStat = entry.getValue();
+            DateTime currentDate = mainStat.getCurrentDate();
+
+            DataOverviewReq dataOverviewReq = DataOverviewReq.builder()
+                    .channelId(channelId)
+                    .start(currentDate.toDate())
+                    .end(currentDate.plusDays(1).withTimeAtStartOfDay().toDate())
+                    .build();
+
+            // *******统计用户相关信息*******
             UserStat userStat = new UserStat();
             mainStat.setUserStat(userStat);
 
-            String dateFormat = statEntry.getKey();
-            List<UserAccessLog> userAccessLogList = date2Users.get(dateFormat);
-            if (CollectionUtils.isEmpty(userAccessLogList)) {
-                continue;
-            }
-
             // 新增用户数
-            long newUserCount = userAccessLogList.stream()
-                    .filter(userAccessLog -> userAccessLog.getNewUser() != null && userAccessLog.getNewUser())
-                    .map(UserAccessLog::getOpenid)
-                    .distinct()
-                    .count();
+            long newUserCount = userAccessLogCustomizedRepository.newCount(dataOverviewReq);
             userStat.setNewUser(newUserCount);
-            // 总用户数
-            long totalUserCount = userAccessLogList.stream().map(UserAccessLog::getOpenid).distinct().count();
+
+            // 总用户数：当前日期及之前所有用户数
+            long totalUserCount = userAccessLogCustomizedRepository.count(dataOverviewReq);
             userStat.setTotalUser(totalUserCount);
-        }
 
-        // ********统计角色相关信息**********
-        List<RoleInfo> newRoleInfos = roleInfoRepository.findByCreateTimeBetween(startDate, endDate)
-                .stream()
-                // 根据channelId筛选
-                .filter(roleInfo -> StringUtils.isBlank(channelId) || channelId.equals(
-                        roleInfo.getChannelId()))
-                .collect(toList());
-        List<RoleInfo> roleInfos = new ArrayList<>(newRoleInfos);
-        List<RoleInfo> updateRoleInfos = roleInfoRepository.findByUpdateTimeBetween(startDate, endDate);
-        roleInfos.addAll(updateRoleInfos);
-        roleInfos = roleInfos.stream()
-                // 根据channelId筛选
-                .filter(roleInfo -> StringUtils.isBlank(channelId) || channelId.equals(
-                        roleInfo.getChannelId()))
-                .collect(toList());
-
-        for (Map.Entry<String, MainStat> statEntry : ds2MainStat.entrySet()) {
-            String dateFormat = statEntry.getKey();
-            MainStat mainStat = statEntry.getValue();
+            // ********统计角色相关信息**********
             RoleStat roleStat = new RoleStat();
             mainStat.setRoleStat(roleStat);
 
             // 新增角色
-            long newRoleCount = newRoleInfos.stream()
-                    .filter(roleInfo -> dateFormat.equals(
-                            new DateTime(roleInfo.getCreateTime()).toString(Constant.DS_FORMAT)))
-                    .count();
+            long newRoleCount = roleInfoCustomizedRepository.newCount(dataOverviewReq);
             roleStat.setNewRole(newRoleCount);
-            // 总角色
-            long totalRoleCount = roleInfos.stream()
-                    .filter(roleInfo -> dateFormat.equals(
-                            new DateTime(roleInfo.getCreateTime()).toString(Constant.DS_FORMAT))
-                            || dateFormat.equals(new DateTime(roleInfo.getUpdateTime()).toString(Constant.DS_FORMAT)))
-                    .map(RoleInfo::getId)
-                    .distinct()
-                    .count();
+            // 总角色:当前日期及之前所有创建的角色数量
+            long totalRoleCount = roleInfoCustomizedRepository.count(dataOverviewReq);
             roleStat.setTotalRole(totalRoleCount);
-        }
 
-        // ********统计支付相关********
-        List<Trade> trades = tradeRepository.findByCreateTimeBetween(startDate, endDate)
-                .stream()
-                // 根据channelId筛选
-                .filter(roleInfo -> StringUtils.isBlank(channelId) || channelId.equals(
-                        roleInfo.getChannelId()))
-                .collect(toList());
-        for (Map.Entry<String, MainStat> statEntry : ds2MainStat.entrySet()) {
-            String dateFormat = statEntry.getKey();
-            MainStat mainStat = statEntry.getValue();
+            // ********统计支付相关********
             PayStat payStat = new PayStat();
             mainStat.setPayStat(payStat);
 
+            DataOverviewReq totalPayStatReq = DataOverviewReq.builder()
+                    .channelId(channelId)
+                    .end(currentDate.plusDays(1).toDate())
+                    .build();
+            List<PayStatResult> payStatResults = tradeCustomizedRepository.statPayUser(totalPayStatReq);
             // 总支付人数
-            long totalPayUsers = trades.stream()
-                    .filter(trade -> dateFormat.equals(
-                            new DateTime(trade.getCreateTime()).toString(Constant.DS_FORMAT)))
-                    .filter(trade -> Constant.CODE_SUCCESS.equals(trade.getTradeState()))
-                    .map(Trade::getOpenid)
-                    .distinct()
-                    .count();
-            payStat.setTotalPayUsers(totalPayUsers);
-            // 总支付金额
-            int totalPaySum = trades.stream()
-                    .filter(trade -> dateFormat.equals(
-                            new DateTime(trade.getCreateTime()).toString(Constant.DS_FORMAT)))
-                    .filter(trade -> Constant.CODE_SUCCESS.equals(trade.getTradeState()))
-                    .mapToInt(Trade::getTotalFee)
-                    .sum();
-            payStat.setTotalPaySum(totalPaySum);
+            payStat.setTotalPayUsers(payStatResults.size());
             // 总支付次数
-            long totalPayCount = trades.stream()
-                    .filter(trade -> dateFormat.equals(
-                            new DateTime(trade.getCreateTime()).toString(Constant.DS_FORMAT)))
-                    .filter(trade -> Constant.CODE_SUCCESS.equals(trade.getTradeState()))
-                    .count();
-            payStat.setTotalPayCount(totalPayCount);
-            // 新增支付人数
-            long newPayUsers = trades.stream()
-                    .filter(trade -> dateFormat.equals(
-                            new DateTime(trade.getCreateTime()).toString(Constant.DS_FORMAT)))
-                    .filter(trade -> Constant.CODE_SUCCESS.equals(trade.getTradeState()))
-                    // 过滤掉之前支付过的用户
-                    .filter(trade -> tradeRepository.countByOpenidAndCreateTimeLessThan(trade.getOpenid(),
-                            new DateTime(trade.getCreateTime()).withTimeAtStartOfDay().toDate()) == 0)
-                    .map(Trade::getOpenid)
-                    .distinct()
-                    .count();
-            payStat.setNewPayUsers(newPayUsers);
-            // 新增支付金额
-            int newPaySum = trades.stream()
-                    .filter(trade -> dateFormat.equals(
-                            new DateTime(trade.getCreateTime()).toString(Constant.DS_FORMAT)))
-                    .filter(trade -> Constant.CODE_SUCCESS.equals(trade.getTradeState()))
-                    // 过滤掉之前支付过的用户
-                    .filter(trade -> tradeRepository.countByOpenidAndCreateTimeLessThan(trade.getOpenid(),
-                            new DateTime(trade.getCreateTime()).withTimeAtStartOfDay().toDate()) == 0)
-                    .mapToInt(Trade::getTotalFee)
-                    .sum();
-            payStat.setNewPaySum(newPaySum);
-        }
+            payStat.setTotalPayCount(payStatResults.stream().mapToLong(PayStatResult::getCount).sum());
+            // 总支付金额
+            payStat.setTotalPaySum(payStatResults.stream().mapToLong(PayStatResult::getAmount).sum());
 
+            // 查询当天之前支付过的用户情况
+            DataOverviewReq beforeTotalPayStatReq = DataOverviewReq.builder()
+                    .channelId(channelId)
+                    .end(currentDate.toDate())
+                    .build();
+            List<String> beforePayedUsers = tradeCustomizedRepository.statPayUser(beforeTotalPayStatReq)
+                    .stream()
+                    .map(PayStatResult::getOpenid)
+                    .collect(Collectors.toList());
+
+            DataOverviewReq currentPayStatReq = DataOverviewReq.builder()
+                    .channelId(channelId)
+                    .start(currentDate.toDate())
+                    .end(currentDate.plusDays(1).toDate())
+                    .openids(beforePayedUsers)
+                    .build();
+            List<PayStatResult> currentPayStatResults = tradeCustomizedRepository.statPayUser(currentPayStatReq);
+            // 新增支付人数
+            payStat.setNewPayUsers(currentPayStatResults.size());
+            // 新增支付金额
+            payStat.setNewPaySum(currentPayStatResults.stream().mapToLong(PayStatResult::getAmount).sum());
+
+            // ********统计ARPU付相关********
+            ArpuStat arpuStat = new ArpuStat();
+            mainStat.setArpuStat(arpuStat);
+
+            // 总额：总支付金额
+            arpuStat.setTotalPayAmount(payStat.getTotalPaySum());
+            // 付费：当天支付总金额
+            DataOverviewReq currentTotalPayStatReq = DataOverviewReq.builder()
+                    .channelId(channelId)
+                    .start(currentDate.toDate())
+                    .end(currentDate.plusDays(1).toDate())
+                    .build();
+            List<PayStatResult> currentTotalPayStatResults = tradeCustomizedRepository.statPayUser(
+                    currentTotalPayStatReq);
+            arpuStat.setCurrentPayAmount(
+                    currentTotalPayStatResults.stream().mapToLong(PayStatResult::getAmount).sum());
+
+            // 付费率:总付费人数除以总创角
+            arpuStat.setPayRate(payStat.getTotalPayUsers() / roleStat.getTotalRole());
+
+            // ********统计留存***********
+            KeepStat keepStat = new KeepStat();
+            mainStat.setKeepStat(keepStat);
+
+            // 次日留存:当天开始，往后推1天，每天都有登录
+            if (Days.daysBetween(currentDate, now).getDays() < 1) {
+                continue;
+            }
+            // 获取当天新增的用户集合
+            List<String> openids = userAccessLogCustomizedRepository.newUserOpenids(dataOverviewReq)
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(UserAccessLog::getOpenid)
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(openids)) {
+                continue;
+            }
+
+            // 查询次日的用户留存情况
+            openids = computeKeepStat(openids, currentDate, 1, 1);
+            if (CollectionUtils.isEmpty(openids)) {
+                continue;
+            }
+            keepStat.setKeep2Day(openids.size());
+
+            // 三日留存
+            openids = computeKeepStat(openids, currentDate, 2, 3);
+            if (CollectionUtils.isEmpty(openids)) {
+                continue;
+            }
+            keepStat.setKeep3Day(openids.size());
+
+            // 七日留存
+            openids = computeKeepStat(openids, currentDate, 4, 7);
+            keepStat.setKeep7Day(openids.size());
+        }
         return new ArrayList<>(ds2MainStat.values());
+    }
+
+    public List<String> computeKeepStat(List<String> openids, DateTime currentDate, int start, int end) {
+        for (int i = start; i <= end; i++) {
+            openids = userAccessLogRepository.findDistinctOpenidByCreateTimeBetweenAndOpenidIn(
+                    currentDate.plusDays(i).toDate(),
+                    currentDate.plusDays(i + 1).toDate(),
+                    openids
+            )
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(UserAccessLog::getOpenid)
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(openids)) {
+                break;
+            }
+        }
+        return openids;
     }
 }

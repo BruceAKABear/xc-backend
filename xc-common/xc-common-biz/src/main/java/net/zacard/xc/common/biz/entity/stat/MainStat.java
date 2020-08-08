@@ -1,6 +1,8 @@
 package net.zacard.xc.common.biz.entity.stat;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
+import org.joda.time.DateTime;
 
 import java.io.Serializable;
 
@@ -21,8 +23,16 @@ public class MainStat implements Serializable {
 
     private PayStat payStat;
 
+    private ArpuStat arpuStat;
+
     /**
      * 日志格式化，格式为：yyyy-MM-dd
      */
     private String dateFormat;
+
+    /**
+     * 冗余字段：当前日期
+     */
+    @JSONField(serialize = false)
+    private DateTime currentDate;
 }

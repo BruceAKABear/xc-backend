@@ -50,8 +50,8 @@ public class StatControllerTest {
     @Test
     public void list() throws Exception {
         StatDto statDto = new StatDto();
-//        statDto.setStart(DateTime.now().minusDays(2).getMillis());
-        statDto.setStart(DateTime.now().getMillis());
+        statDto.setStart(DateTime.now().minusDays(2).getMillis());
+//        statDto.setStart(DateTime.now().getMillis());
         statDto.setEnd(DateTime.now().getMillis());
 
         MvcResult result = restMockMvc.perform(post("/stat/list")

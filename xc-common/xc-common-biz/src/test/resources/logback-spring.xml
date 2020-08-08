@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="true" scanPeriod="30 seconds" packagingData="true">
+
+    <contextName>logback</contextName>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!--获取特定配置-->
+    <springProperty scope="context" name="LOG_APP_NAME" source="spring.application.name"/>
+    <springProperty scope="context" name="LOG_ENV" source="spring.profiles.active" defaultValue="DEV"/>
+    <if condition='"DEV".equals("${LOG_ENV}")||"dev".equals("${LOG_ENV}")'>
+        <then>
+            <property name="LOG_PATH" value="${user.dir}/logs/${LOG_APP_NAME}" scope="context"/>
+        </then>
+        <else>
+            <property name="LOG_PATH" value="/home/logs/${LOG_APP_NAME}" scope="context"/>
+        </else>
+    </if>
+    <!--定义属性-->
+    <!--日志文件命名分区 -->
+    <property name="LOG_FILENAME_BIZ" value="${LOG_PATH}/${LOG_APP_NAME}-biz" scope="context"/>
+    <property name="LOG_FILENAME_SYS" value="${LOG_PATH}/${LOG_APP_NAME}-sys" scope="context"/>
+    <property name="LOG_FILENAME_ACCESS_LOG" value="${LOG_PATH}/${LOG_APP_NAME}-access-log-sys" scope="context"/>
+    <!--日志输出格式-->
+    <property name="LOG_PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss}][%-5p][%t]%F:%L - %m%n" scope="context"/>
+
+    <appender name="file-biz" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILENAME_BIZ}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILENAME_BIZ}.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>21</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file-sys" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILENAME_SYS}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILENAME_SYS}.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>21</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file-access-log-sys" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILENAME_ACCESS_LOG}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILENAME_ACCESS_LOG}.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>21</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="net.zacard.xc.common.biz.infra.filter.AccessLogFilter" level="info" additivity="false">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file-access-log-sys"/>
+    </logger>
+
+    <logger name="net.zacard" level="info" additivity="false">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file-biz"/>
+    </logger>
+
+    <logger name="org.springframework.data.mongodb" level="debug" additivity="false">
+        <appender-ref ref="console"/>
+    </logger>
+
+    <root level="info">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file-sys"/>
+    </root>
+
+</configuration>

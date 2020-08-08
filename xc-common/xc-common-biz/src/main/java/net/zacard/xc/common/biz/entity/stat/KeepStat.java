@@ -18,15 +18,15 @@ public class KeepStat implements Serializable {
     /**
      * 次日留存
      */
-    private double keep2Day;
+    private long keep2Day;
 
     /**
      * 3日留存
      */
-    private double keep3Day;
+    private long keep3Day;
 
     /**
      * 7日留存
      */
-    private double keep7Day;
+    private long keep7Day;
 }

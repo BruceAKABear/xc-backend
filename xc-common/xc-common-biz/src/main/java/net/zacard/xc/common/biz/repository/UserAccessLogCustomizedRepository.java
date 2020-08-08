@@ -5,6 +5,8 @@ import net.zacard.xc.common.biz.entity.UserAccessLog;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;
 
+import java.util.List;
+
 /**
  * @author guoqw
  * @since 2020-06-22 08:33
@@ -15,11 +17,16 @@ public interface UserAccessLogCustomizedRepository extends Repository<UserAccess
     /**
      * 根据条件查询新增用户数
      */
-    int newCount(DataOverviewReq req);
+    long newCount(DataOverviewReq req);
 
     /**
      * 根据条件查询总用户数
      */
-    int count(DataOverviewReq req);
+    long count(DataOverviewReq req);
+
+    /**
+     * 查询指定时间新增的用户openid集合
+     */
+    List<UserAccessLog> newUserOpenids(DataOverviewReq req);
 
 }

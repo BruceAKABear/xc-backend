@@ -1,6 +1,8 @@
 package net.zacard.xc.common.biz.repository;
 
+import net.zacard.xc.common.biz.entity.DataOverviewReq;
 import net.zacard.xc.common.biz.entity.Trade;
+import net.zacard.xc.common.biz.entity.stat.PayStatResult;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;
 
@@ -19,4 +21,9 @@ public interface TradeCustomizedRepository extends Repository<Trade, String> {
     List<Trade> findExceptionTradesWith(long intervalMillisecond);
 
     List<Trade> findExceptionTradesWithLimit(long intervalMillisecond, int limit);
+
+    /**
+     * 根据条件统计用户支付情况
+     */
+    List<PayStatResult> statPayUser(DataOverviewReq req);
 }

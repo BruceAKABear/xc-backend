@@ -18,4 +18,11 @@ public interface UserAccessLogRepository extends MongoRepository<UserAccessLog, 
      * 查询一定时间段内的用户情况
      */
     List<UserAccessLog> findDistinctOpenidByCreateTimeBetween(Date start, Date end);
+
+    /**
+     * 统计创建时间在指定时间的用户数量
+     */
+    long countDistinctOpenidByCreateTimeLessThan(Date date);
+
+    List<UserAccessLog> findDistinctOpenidByCreateTimeBetweenAndOpenidIn(Date start, Date end, List<String> openids);
 }
