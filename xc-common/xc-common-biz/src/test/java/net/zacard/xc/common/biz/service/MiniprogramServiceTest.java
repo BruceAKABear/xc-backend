@@ -1,5 +1,6 @@
 package net.zacard.xc.common.biz.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.io.Files;
 import net.zacard.xc.common.biz.entity.MiniProgramConfig;
 import net.zacard.xc.common.biz.entity.MiniProgramExtraConfig;
@@ -69,6 +70,13 @@ public class MiniprogramServiceTest {
         extraConfig.setPayTitle("点我充值");
         mini.setExtraConfig(extraConfig);
         miniprogramService.update(mini);
+    }
+
+    @Test
+    public void update1() {
+        String json = "{\"appId\":\"wxedf5635dea3def45\",\"appSecret\":\"21823c6ec476e5787b9ec4ac1ab9fd78\",\"id\":\"5f0ff6337ea3c61c3f29f8ab\",\"infoId\":\"5f2b7224f408241da9065c74\",\"key\":\"2782F226BBAE4C4BA136686AB90DF43F\",\"mchId\":\"1597282921\",\"name\":\"怀旧经典传奇\",\"showType\":\"info\"}";
+        MiniProgramConfig config = JSON.parseObject(json, MiniProgramConfig.class);
+        miniprogramService.update(config);
     }
 
     @Test

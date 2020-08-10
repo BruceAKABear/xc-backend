@@ -1,6 +1,7 @@
 package net.zacard.xc.common.biz.service;
 
 import net.zacard.xc.common.api.entity.StatDto;
+import net.zacard.xc.common.biz.entity.Channel;
 import net.zacard.xc.common.biz.entity.DataOverviewReq;
 import net.zacard.xc.common.biz.entity.UserAccessLog;
 import net.zacard.xc.common.biz.entity.stat.ArpuStat;
@@ -11,6 +12,7 @@ import net.zacard.xc.common.biz.entity.stat.PayStatResult;
 import net.zacard.xc.common.biz.entity.stat.RoleStat;
 import net.zacard.xc.common.biz.entity.stat.UserStat;
 import net.zacard.xc.common.biz.infra.exception.BusinessException;
+import net.zacard.xc.common.biz.repository.ChannelRepository;
 import net.zacard.xc.common.biz.repository.RoleInfoCustomizedRepository;
 import net.zacard.xc.common.biz.repository.RoleInfoRepository;
 import net.zacard.xc.common.biz.repository.TradeCustomizedRepository;
@@ -19,6 +21,7 @@ import net.zacard.xc.common.biz.repository.UserAccessLogCustomizedRepository;
 import net.zacard.xc.common.biz.repository.UserAccessLogRepository;
 import net.zacard.xc.common.biz.util.Constant;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +60,18 @@ public class StateService {
     @Autowired
     private TradeCustomizedRepository tradeCustomizedRepository;
 
+    @Autowired
+    private ChannelRepository channelRepository;
+
     public List<MainStat> stat(StatDto statDto) {
         String channelId = statDto.getChannelId();
+        if (StringUtils.isNotBlank(channelId)) {
+            // 校验是否存在改channel
+            Channel channel = channelRepository.findOne(channelId);
+            if (channel == null) {
+                throw BusinessException.withMessage("不存在渠道(channelId:" + channelId + ")");
+            }
+        }
         Long start = statDto.getStart();
         Long end = statDto.getEnd();
         if (start > end) {

@@ -53,6 +53,8 @@ public class StatControllerTest {
         statDto.setStart(DateTime.now().minusDays(2).getMillis());
 //        statDto.setStart(DateTime.now().getMillis());
         statDto.setEnd(DateTime.now().getMillis());
+//        statDto.setChannelId("5f02cf117ea3c61f2f3c8e98");
+        System.out.println("req json:" + JSON.toJSONString(statDto, true));
 
         MvcResult result = restMockMvc.perform(post("/stat/list")
                 .content(JSON.toJSONBytes(statDto))

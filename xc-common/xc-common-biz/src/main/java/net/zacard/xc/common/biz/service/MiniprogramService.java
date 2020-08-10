@@ -159,12 +159,13 @@ public class MiniprogramService {
         if (StringUtils.isBlank(miniProgramConfig.getId())) {
             throw BusinessException.withMessage("小程序的id不能为空");
         }
-        if (miniProgramConfig.getExtraConfig() == null || StringUtils.isBlank(
-                miniProgramConfig.getExtraConfig().getResPayPagePath())) {
-            MiniProgramConfig one = miniProgramConfigRepository.findOne(miniProgramConfig.getId());
-            miniProgramConfig.setExtraConfig(one.getExtraConfig());
-        }
-        miniProgramConfigRepository.save(miniProgramConfig);
+        MiniProgramConfig one = miniProgramConfigRepository.findOne(miniProgramConfig.getId());
+//        if (miniProgramConfig.getExtraConfig() == null || StringUtils.isBlank(
+//                miniProgramConfig.getExtraConfig().getResPayPagePath())) {
+//            miniProgramConfig.setExtraConfig(one.getExtraConfig());
+//        }
+        BeanMapper.map(miniProgramConfig, one);
+        miniProgramConfigRepository.save(one);
     }
 
     public String refreshPayMedia(MiniProgramConfig miniProgramConfig) {
