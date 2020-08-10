@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.zacard.xc.common.biz.entity.Channel;
 import net.zacard.xc.common.biz.infra.exception.BusinessException;
 import net.zacard.xc.common.biz.repository.ChannelRepository;
+import net.zacard.xc.common.biz.util.BeanMapper;
 import net.zacard.xc.common.biz.util.RandomStringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,7 @@ public class ChannelService {
         if (!oldSecret.equals(channel.getAppSecret())) {
             log.warn("渠道({})的appSecret从{}变更为{}", channel.getId(), oldSecret, channel.getAppSecret());
         }
-        channelRepository.save(channel);
+        BeanMapper.map(channel, tmp);
+        channelRepository.save(tmp);
     }
 }
