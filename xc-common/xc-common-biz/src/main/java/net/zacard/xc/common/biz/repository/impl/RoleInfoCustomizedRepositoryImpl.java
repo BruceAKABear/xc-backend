@@ -25,26 +25,17 @@ public class RoleInfoCustomizedRepositoryImpl implements RoleInfoCustomizedRepos
     @Override
     public long newCount(DataOverviewReq req) {
         Query query = new Query();
-        Criteria where = Criteria.where("create_time").gte(req.getStart()).lt(req.getEnd());
-        String channelId = req.getChannelId();
-        if (StringUtils.isNotBlank(channelId)) {
-            where.and("channel_id").is(channelId);
-        }
+        Criteria where = base(new Criteria(), req, true);
         query.addCriteria(where);
-        log.info("newCount query：" + query);
         return mongoTemplate.count(query, RoleInfo.class);
     }
 
     @Override
     public long count(DataOverviewReq req) {
         Query query = new Query();
-        Criteria where = Criteria.where("create_time").lt(req.getEnd());
-        String channelId = req.getChannelId();
-        if (StringUtils.isNotBlank(channelId)) {
-            where.and("channel_id").is(channelId);
-        }
+        Criteria where = base(new Criteria(), req, false);
         query.addCriteria(where);
-        log.info("newCount query：" + query);
         return mongoTemplate.count(query, RoleInfo.class);
     }
+
 }

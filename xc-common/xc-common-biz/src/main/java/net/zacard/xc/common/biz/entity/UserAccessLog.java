@@ -4,6 +4,9 @@ import lombok.Data;
 import net.zacard.xc.common.biz.infra.mongo.AuditDocument;
 import net.zacard.xc.common.biz.infra.web.Session;
 import net.zacard.xc.common.biz.util.RandomStringUtil;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
@@ -18,10 +21,15 @@ import java.util.Date;
  */
 @Data
 @Document
+@CompoundIndexes({
+        @CompoundIndex(name = "keep_stat", def = "{'create_time': 1, 'openid': 1}", background = true),
+        @CompoundIndex(name = "user_stat", def = "{'new_user': 1, 'create_time': 1, 'channel_id': 1, 'app_id': 1}", background = true)
+})
 public class UserAccessLog extends AuditDocument {
 
     private static final long serialVersionUID = 3786316032636395166L;
 
+    @Indexed(background = true)
     private String userToken;
 
     private String userId;

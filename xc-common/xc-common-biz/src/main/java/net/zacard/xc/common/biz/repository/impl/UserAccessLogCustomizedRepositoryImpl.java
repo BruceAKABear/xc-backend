@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.zacard.xc.common.biz.entity.DataOverviewReq;
 import net.zacard.xc.common.biz.entity.UserAccessLog;
 import net.zacard.xc.common.biz.repository.UserAccessLogCustomizedRepository;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -30,14 +29,8 @@ public class UserAccessLogCustomizedRepositoryImpl implements UserAccessLogCusto
     @Override
     public long newCount(DataOverviewReq req) {
         Query query = new Query();
-        Criteria where = Criteria.where("new_user").is(true)
-                .and("create_time").gte(req.getStart()).lt(req.getEnd());
-        String channelId = req.getChannelId();
-        if (StringUtils.isNotBlank(channelId)) {
-            where.and("channel_id").is(channelId);
-        }
+        Criteria where = base(req, true);
         query.addCriteria(where);
-        log.info("newCount query：" + query);
         return mongoTemplate.count(query, UserAccessLog.class);
     }
 
@@ -47,14 +40,8 @@ public class UserAccessLogCustomizedRepositoryImpl implements UserAccessLogCusto
     @Override
     public long count(DataOverviewReq req) {
         Query query = new Query();
-        Criteria where = Criteria.where("new_user").is(true)
-                .and("create_time").lt(req.getEnd());
-        String channelId = req.getChannelId();
-        if (StringUtils.isNotBlank(channelId)) {
-            where.and("channel_id").is(channelId);
-        }
+        Criteria where = base(req, false);
         query.addCriteria(where);
-        log.info("count query：" + query);
         return mongoTemplate.count(query, UserAccessLog.class);
     }
 
@@ -64,15 +51,14 @@ public class UserAccessLogCustomizedRepositoryImpl implements UserAccessLogCusto
     @Override
     public List<UserAccessLog> newUserOpenids(DataOverviewReq req) {
         Query query = new Query();
-        Criteria where = Criteria.where("new_user").is(true)
-                .and("create_time").gte(req.getStart()).lt(req.getEnd());
-        String channelId = req.getChannelId();
-        if (StringUtils.isNotBlank(channelId)) {
-            where.and("channel_id").is(channelId);
-        }
+        Criteria where = base(req, true);
         query.addCriteria(where);
         query.fields().include("openid");
-        log.info("newCount query：" + query);
         return mongoTemplate.find(query, UserAccessLog.class);
+    }
+
+    private Criteria base(DataOverviewReq req, boolean isBetween) {
+        Criteria where = Criteria.where("new_user").is(true);
+        return base(where, req, isBetween);
     }
 }

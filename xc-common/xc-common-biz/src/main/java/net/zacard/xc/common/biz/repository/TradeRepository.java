@@ -23,6 +23,6 @@ public interface TradeRepository extends MongoRepository<Trade, String> {
     /**
      * 按照创建时间倒序，查询前100条交易数据,且未发送过回调
      */
-    List<Trade> findTop100ByTradeStateAndHasSendCallbackIsFalseOrderByCreateTimeDesc(String tradeState);
+    List<Trade> findTop100ByHasSendCallbackIsFalseAndTradeStateOrderByCreateTimeDesc(String tradeState);
 
 }

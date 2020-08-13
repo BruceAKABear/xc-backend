@@ -68,6 +68,10 @@ public class TradeCustomizedRepositoryImpl implements TradeCustomizedRepository 
         if (StringUtils.isNotBlank(channelId)) {
             where.and("channel_id").is(channelId);
         }
+        String appId = req.getAppId();
+        if (StringUtils.isNotBlank(appId)) {
+            where.and("app_id").is(appId);
+        }
         List<String> openids = req.getOpenids();
         if (CollectionUtils.isNotEmpty(openids)) {
             where.and("openid").nin(openids);

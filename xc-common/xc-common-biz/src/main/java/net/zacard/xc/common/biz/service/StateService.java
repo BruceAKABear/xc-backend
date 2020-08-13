@@ -182,7 +182,10 @@ public class StateService {
                     currentTotalPayStatResults.stream().mapToLong(PayStatResult::getAmount).sum());
 
             // 付费率:总付费人数除以总创角
-            arpuStat.setPayRate(payStat.getTotalPayUsers() / roleStat.getTotalRole());
+            long totalPayUsers = payStat.getTotalPayUsers();
+            if (totalPayUsers != 0) {
+                arpuStat.setPayRate(totalPayUsers / roleStat.getTotalRole());
+            }
 
             // ********统计留存***********
             KeepStat keepStat = new KeepStat();

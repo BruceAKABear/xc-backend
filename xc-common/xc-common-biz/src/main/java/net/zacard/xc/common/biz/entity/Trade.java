@@ -2,6 +2,8 @@ package net.zacard.xc.common.biz.entity;
 
 import lombok.Data;
 import net.zacard.xc.common.biz.infra.mongo.AuditDocument;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,6 +15,11 @@ import java.util.Date;
  */
 @Data
 @Document
+@CompoundIndexes({
+        @CompoundIndex(name = "pay_query", def = "{'channel_id': 1, 'channel_order_id': 1}", background = true),
+        @CompoundIndex(name = "send_callback_task", def = "{'has_send_callback': 1, 'trade_state': 1}", background = true),
+        @CompoundIndex(name = "exception_trade", def = "{'create_time': 1, 'trade_state': 1}", background = true)
+})
 public class Trade extends AuditDocument {
 
     private static final long serialVersionUID = -3977239654486611547L;
@@ -26,7 +33,7 @@ public class Trade extends AuditDocument {
     /**
      * 微信订单号
      */
-    @Indexed()
+    @Indexed
     private String transactionId;
 
     /**

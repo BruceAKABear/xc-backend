@@ -320,7 +320,7 @@ public class PayService {
     public void sendCallbackTask() {
 //        log.info("开始检查是否有交易需要回调渠道方");
         DLockUtil.lockWithTimeoutAndCatch(() -> {
-            List<Trade> trades = tradeRepository.findTop100ByTradeStateAndHasSendCallbackIsFalseOrderByCreateTimeDesc(
+            List<Trade> trades = tradeRepository.findTop100ByHasSendCallbackIsFalseAndTradeStateOrderByCreateTimeDesc(
                     Constant.CODE_SUCCESS);
             if (CollectionUtils.isEmpty(trades)) {
                 return;

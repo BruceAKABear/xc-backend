@@ -3,6 +3,8 @@ package net.zacard.xc.common.biz.entity;
 import lombok.Data;
 import net.zacard.xc.common.biz.infra.mongo.AuditDocument;
 import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -17,6 +19,9 @@ import java.util.List;
  */
 @Data
 @Document(collection = "role_info")
+@CompoundIndexes({
+        @CompoundIndex(name = "role_stat", def = "{'create_time': 1, 'channel_id': 1, 'app_id': 1}", background = true)
+})
 public class RoleInfo extends AuditDocument {
 
     private static final long serialVersionUID = 3598301856581390421L;
@@ -25,7 +30,11 @@ public class RoleInfo extends AuditDocument {
 
     private String openid;
 
+    @Indexed
     private String channelId;
+
+    @Indexed
+    private String appId;
 
     /**
      * 角色名称
@@ -49,7 +58,7 @@ public class RoleInfo extends AuditDocument {
     private Integer money;
 
     /**
-     * 用来做唯一区分：openid+channelId+area+name 来唯一确定一个角色，用英文逗号分隔
+     * 用来做唯一区分：openid+channelId+appId+area+name 来唯一确定一个角色，用英文逗号分隔
      */
     @Indexed(unique = true)
     private String token;
@@ -58,6 +67,7 @@ public class RoleInfo extends AuditDocument {
         List<String> tokenList = new ArrayList<>();
         tokenList.add(this.getOpenid());
         tokenList.add(this.getChannelId());
+        tokenList.add(this.getAppId());
         tokenList.add(this.getArea());
         tokenList.add(this.getName());
         this.setToken(String.join(",", tokenList));

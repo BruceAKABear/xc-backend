@@ -21,6 +21,8 @@ public class DataOverviewReq implements Serializable {
 
     private String channelId;
 
+    private String appId;
+
     private Date start;
 
     private Date end;
