@@ -62,6 +62,7 @@ public class RoleInfoService {
             roleInfo.setChannelId(userAccessLog.getChannelId());
             roleInfo.setOpenid(userAccessLog.getOpenid());
             roleInfo.setUserId(userAccessLog.getUserId());
+            roleInfo.setAppId(userAccessLog.getAppId());
             // 生成role token
             roleInfo.buildToken();
             roleInfo = roleInfoRepository.findByToken(roleInfo.getToken());
