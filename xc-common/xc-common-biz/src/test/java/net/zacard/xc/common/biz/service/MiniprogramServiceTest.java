@@ -1,8 +1,10 @@
 package net.zacard.xc.common.biz.service;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import net.zacard.xc.common.biz.entity.MiniProgramConfig;
+import net.zacard.xc.common.biz.entity.MiniProgramDto;
 import net.zacard.xc.common.biz.entity.MiniProgramExtraConfig;
 import net.zacard.xc.common.biz.repository.MiniProgramConfigRepository;
 import net.zacard.xc.common.biz.util.Constant;
@@ -77,6 +79,17 @@ public class MiniprogramServiceTest {
         String json = "{\"appId\":\"wxedf5635dea3def45\",\"appSecret\":\"21823c6ec476e5787b9ec4ac1ab9fd78\",\"id\":\"5f0ff6337ea3c61c3f29f8ab\",\"infoId\":\"5f2b7224f408241da9065c74\",\"key\":\"2782F226BBAE4C4BA136686AB90DF43F\",\"mchId\":\"1597282921\",\"name\":\"怀旧经典传奇\",\"showType\":\"info\"}";
         MiniProgramConfig config = JSON.parseObject(json, MiniProgramConfig.class);
         miniprogramService.update(config);
+    }
+
+    @Test
+    public void update2() {
+        String appId = "wx0e63bb140eabbcab";
+        MiniProgramConfig miniProgramConfig = miniProgramConfigRepository.findByAppId(appId);
+        Assert.assertNotNull(miniProgramConfig);
+        miniProgramConfig.setChannelIds(Lists.newArrayList("5f02cf117ea3c61f2f3c8e98"));
+        miniProgramConfigRepository.save(miniProgramConfig);
+        MiniProgramDto dto = miniprogramService.get(appId);
+        System.out.println("result:" + JSON.toJSONString(dto, true));
     }
 
     @Test

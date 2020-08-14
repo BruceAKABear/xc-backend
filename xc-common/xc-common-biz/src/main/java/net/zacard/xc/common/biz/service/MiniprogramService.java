@@ -242,8 +242,12 @@ public class MiniprogramService {
             Info info = infoService.get(mini.getInfoId());
             dto.setInfo(info);
         } else {
-            List<Channel> channels = channelRepository.findByMiniProgramConfigId(mini.getId());
-            dto.setChannel(channels.get(0));
+//            List<Channel> channels = channelRepository.findByMiniProgramConfigId(mini.getId());
+//            dto.setChannel(channels.get(0));
+
+            List<String> channelIds = mini.getChannelIds();
+            Channel channel = channelRepository.findOne(channelIds.get(0));
+            dto.setChannel(channel);
         }
         return dto;
     }
